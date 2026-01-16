@@ -10,6 +10,7 @@ import SwiftUI
 struct HistoryView: View {
     @Environment(WorkoutViewModel.self) var viewModel
     @State private var selectedWorkout: Workout?
+    @State private var selectedPeriod: ProgressTimePeriod = .month
 
     var body: some View {
         ZStack {
@@ -24,7 +25,10 @@ struct HistoryView: View {
                     if viewModel.workouts.isEmpty {
                         emptyState
                     } else {
-                        // Stats summary
+                        // Progress charts section
+                        ProgressChartsSection(selectedPeriod: $selectedPeriod)
+
+                        // Stats summary (now filtered by period)
                         statsSummary
 
                         // Workout list
@@ -47,10 +51,34 @@ struct HistoryView: View {
     // MARK: - Header
     private var header: some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
-            Text("YOUR PROGRESS")
-                .font(Theme.Typography.caption)
-                .foregroundColor(Theme.Colors.textSecondary)
-                .tracking(1)
+            HStack {
+                Text("YOUR PROGRESS")
+                    .font(Theme.Typography.caption)
+                    .foregroundColor(Theme.Colors.textSecondary)
+                    .tracking(1)
+
+                Spacer()
+
+//                #if DEBUG
+//                Menu {
+//                    Button {
+//                        viewModel.generateSampleData()
+//                    } label: {
+//                        Label("Generate Sample Data", systemImage: "wand.and.stars")
+//                    }
+//
+//                    Button(role: .destructive) {
+//                        viewModel.clearAllData()
+//                    } label: {
+//                        Label("Clear All Data", systemImage: "trash")
+//                    }
+//                } label: {
+//                    Image(systemName: "ladybug.fill")
+//                        .font(.caption)
+//                        .foregroundColor(Theme.Colors.textMuted)
+//                }
+//                #endif
+            }
 
             Text("HISTORY")
                 .font(Theme.Typography.displaySmall())
@@ -89,27 +117,45 @@ struct HistoryView: View {
 
     // MARK: - Stats Summary
     private var statsSummary: some View {
-        HStack(spacing: Theme.Spacing.md) {
-            SummaryCard(
-                value: "\(viewModel.workouts.count)",
-                label: "Workouts",
-                icon: "flame.fill",
-                color: Theme.Colors.accent
-            )
+        let stats = viewModel.stats(in: selectedPeriod)
+        return VStack(spacing: Theme.Spacing.sm) {
+            // Period label
+            Text(periodLabel)
+                .font(Theme.Typography.captionSmall)
+                .foregroundColor(Theme.Colors.textMuted)
+                .frame(maxWidth: .infinity, alignment: .leading)
 
-            SummaryCard(
-                value: "\(totalSets)",
-                label: "Total Sets",
-                icon: "square.stack.3d.up.fill",
-                color: Theme.Colors.textPrimary
-            )
+            HStack(spacing: Theme.Spacing.md) {
+                SummaryCard(
+                    value: "\(stats.workouts)",
+                    label: "Workouts",
+                    icon: "flame.fill",
+                    color: Theme.Colors.accent
+                )
 
-            SummaryCard(
-                value: formatVolume(totalVolume),
-                label: "Volume",
-                icon: "scalemass.fill",
-                color: Theme.Colors.steel
-            )
+                SummaryCard(
+                    value: "\(stats.sets)",
+                    label: "Total Sets",
+                    icon: "square.stack.3d.up.fill",
+                    color: Theme.Colors.textPrimary
+                )
+
+                SummaryCard(
+                    value: formatVolume(stats.volume),
+                    label: "Volume",
+                    icon: "scalemass.fill",
+                    color: Theme.Colors.steel
+                )
+            }
+        }
+    }
+
+    private var periodLabel: String {
+        switch selectedPeriod {
+        case .week: return "LAST 7 DAYS"
+        case .month: return "LAST 30 DAYS"
+        case .threeMonths: return "LAST 90 DAYS"
+        case .allTime: return "ALL TIME"
         }
     }
 

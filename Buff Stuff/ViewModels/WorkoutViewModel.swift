@@ -2,6 +2,71 @@ import Foundation
 import SwiftUI
 import Observation
 
+// MARK: - Progress Time Period
+enum ProgressTimePeriod: String, CaseIterable, Identifiable {
+    case week = "7D"
+    case month = "30D"
+    case threeMonths = "90D"
+    case allTime = "ALL"
+
+    var id: String { rawValue }
+
+    var days: Int? {
+        switch self {
+        case .week: return 7
+        case .month: return 30
+        case .threeMonths: return 90
+        case .allTime: return nil
+        }
+    }
+
+    var startDate: Date? {
+        guard let days = days else { return nil }
+        return Calendar.current.date(byAdding: .day, value: -days, to: Date())
+    }
+}
+
+// MARK: - Progress Status
+enum ProgressStatus {
+    case progressing  // ↑ >2% volume increase
+    case plateau      // → -2% to +2% change
+    case declining    // ↓ >2% volume decrease
+    case newExercise  // ★ <4 data points to compare
+
+    var icon: String {
+        switch self {
+        case .progressing: return "arrow.up"
+        case .plateau: return "arrow.right"
+        case .declining: return "arrow.down"
+        case .newExercise: return "star.fill"
+        }
+    }
+
+    var color: Color {
+        switch self {
+        case .progressing: return Theme.Colors.success
+        case .plateau: return Theme.Colors.warning
+        case .declining: return Theme.Colors.danger
+        case .newExercise: return Theme.Colors.textMuted
+        }
+    }
+}
+
+// MARK: - Exercise Progress
+struct ExerciseProgress: Identifiable {
+    let id: UUID  // exercise ID
+    let exercise: Exercise
+    let status: ProgressStatus
+    // Volume tracking (weight × reps)
+    let baselineVolume: Double
+    let recentVolume: Double
+    let percentChange: Double
+    // For expanded view breakdown
+    let recentWeight: Double
+    let recentReps: Int
+    let dataPoints: Int
+}
+
 // MARK: - Workout View Model
 @MainActor
 @Observable
@@ -257,4 +322,237 @@ class WorkoutViewModel {
         let generator = UIImpactFeedbackGenerator(style: style)
         generator.impactOccurred()
     }
+
+    // MARK: - Progress Data Methods
+
+    /// Returns completed workouts within the specified time period
+    func workouts(in period: ProgressTimePeriod) -> [Workout] {
+        let completed = workouts.filter { $0.completedAt != nil }
+        guard let startDate = period.startDate else {
+            return completed
+        }
+        return completed.filter { $0.startedAt >= startDate }
+    }
+
+    /// Returns max weight lifted per workout for a specific exercise
+    func exerciseProgressDataPoints(exerciseId: UUID, in period: ProgressTimePeriod) -> [(date: Date, weight: Double)] {
+        workouts(in: period)
+            .compactMap { workout -> (date: Date, weight: Double)? in
+                // Find max non-warmup weight for this exercise in the workout
+                guard let entry = workout.entries.first(where: { $0.exercise.id == exerciseId }) else {
+                    return nil
+                }
+                let maxWeight = entry.workingSets.map { $0.weight }.max() ?? 0
+                guard maxWeight > 0 else { return nil }
+                return (date: workout.startedAt, weight: maxWeight)
+            }
+            .sorted { $0.date < $1.date }
+    }
+
+    /// Returns full data points for a specific exercise (weight, reps, volume per session)
+    /// Uses top set (highest volume working set) from each session
+    func exerciseProgressDataPointsFull(exerciseId: UUID, in period: ProgressTimePeriod) -> [(date: Date, weight: Double, reps: Int, volume: Double)] {
+        workouts(in: period)
+            .compactMap { workout -> (date: Date, weight: Double, reps: Int, volume: Double)? in
+                guard let entry = workout.entries.first(where: { $0.exercise.id == exerciseId }) else {
+                    return nil
+                }
+                // Find top set by volume (weight × reps)
+                guard let topSet = entry.workingSets.max(by: { $0.volume < $1.volume }),
+                      topSet.volume > 0 else {
+                    return nil
+                }
+                return (date: workout.startedAt, weight: topSet.weight, reps: topSet.reps, volume: topSet.volume)
+            }
+            .sorted { $0.date < $1.date }
+    }
+
+    /// Returns exercises that have logged history (for the exercise picker)
+    func exercisesWithHistory() -> [Exercise] {
+        let exerciseIdsWithHistory = Set(
+            workouts.flatMap { $0.entries.map { $0.exercise.id } }
+        )
+        return exercises.filter { exerciseIdsWithHistory.contains($0.id) }
+            .sorted { $0.name < $1.name }
+    }
+
+    /// Stats for a specific time period
+    func stats(in period: ProgressTimePeriod) -> (workouts: Int, sets: Int, volume: Double) {
+        let periodWorkouts = workouts(in: period)
+        let totalSets = periodWorkouts.reduce(0) { $0 + $1.totalSets }
+        let totalVolume = periodWorkouts.reduce(0) { $0 + $1.totalVolume }
+        return (workouts: periodWorkouts.count, sets: totalSets, volume: totalVolume)
+    }
+
+    /// Returns progress status for all exercises with history in the time period
+    /// Uses volume (weight × reps) for progress calculation
+    func allExerciseProgress(in period: ProgressTimePeriod) -> [ExerciseProgress] {
+        let exercisesWithData = exercisesWithHistory()
+
+        return exercisesWithData.compactMap { exercise -> ExerciseProgress? in
+            let dataPoints = exerciseProgressDataPointsFull(exerciseId: exercise.id, in: period)
+
+            guard !dataPoints.isEmpty else { return nil }
+
+            // Get most recent data point for display
+            let mostRecent = dataPoints.last!
+
+            // Need at least 4 data points to compare baseline vs recent
+            if dataPoints.count < 4 {
+                let avgVolume = dataPoints.map { $0.volume }.reduce(0, +) / Double(dataPoints.count)
+                return ExerciseProgress(
+                    id: exercise.id,
+                    exercise: exercise,
+                    status: .newExercise,
+                    baselineVolume: avgVolume,
+                    recentVolume: avgVolume,
+                    percentChange: 0,
+                    recentWeight: mostRecent.weight,
+                    recentReps: mostRecent.reps,
+                    dataPoints: dataPoints.count
+                )
+            }
+
+            // Split data: recent 2 sessions vs older sessions (2-4 before that)
+            let sortedByDate = dataPoints.sorted { $0.date > $1.date }
+            let recentSessions = Array(sortedByDate.prefix(2))
+            let olderSessions = Array(sortedByDate.dropFirst(2).prefix(2))
+
+            let recentAvg = recentSessions.map { $0.volume }.reduce(0, +) / Double(recentSessions.count)
+            let baselineAvg = olderSessions.map { $0.volume }.reduce(0, +) / Double(olderSessions.count)
+
+            // Calculate percent change
+            let percentChange: Double
+            if baselineAvg > 0 {
+                percentChange = ((recentAvg - baselineAvg) / baselineAvg) * 100
+            } else {
+                percentChange = 0
+            }
+
+            // Determine status based on 2% threshold
+            let status: ProgressStatus
+            if percentChange > 2 {
+                status = .progressing
+            } else if percentChange < -2 {
+                status = .declining
+            } else {
+                status = .plateau
+            }
+
+            return ExerciseProgress(
+                id: exercise.id,
+                exercise: exercise,
+                status: status,
+                baselineVolume: baselineAvg,
+                recentVolume: recentAvg,
+                percentChange: percentChange,
+                recentWeight: mostRecent.weight,
+                recentReps: mostRecent.reps,
+                dataPoints: dataPoints.count
+            )
+        }
+        .sorted { $0.exercise.name < $1.exercise.name }
+    }
+
+    // MARK: - Sample Data Generation (Debug)
+    #if DEBUG
+    func generateSampleData() {
+        // Clear existing workouts
+        workouts.removeAll()
+
+        let calendar = Calendar.current
+
+        // Sample workout templates
+        let pushExercises = exercises.filter { $0.muscleGroup == .chest || $0.muscleGroup == .shoulders || $0.muscleGroup == .triceps }
+        let pullExercises = exercises.filter { $0.muscleGroup == .back || $0.muscleGroup == .biceps }
+        let legExercises = exercises.filter { $0.muscleGroup == .legs || $0.muscleGroup == .glutes }
+
+        // Generate workouts over 90 days
+        var sampleWorkouts: [Workout] = []
+
+        for weeksAgo in 0..<13 {
+            // 3-4 workouts per week
+            let workoutsThisWeek = Int.random(in: 3...4)
+
+            for workoutIndex in 0..<workoutsThisWeek {
+                let daysAgo = (weeksAgo * 7) + (workoutIndex * 2) + Int.random(in: 0...1)
+                guard let workoutDate = calendar.date(byAdding: .day, value: -daysAgo, to: Date()) else { continue }
+
+                // Rotate push/pull/legs
+                let workoutType = workoutIndex % 3
+                let exercisePool: [Exercise]
+                switch workoutType {
+                case 0: exercisePool = pushExercises.isEmpty ? Array(exercises.prefix(3)) : pushExercises
+                case 1: exercisePool = pullExercises.isEmpty ? Array(exercises.prefix(3)) : pullExercises
+                default: exercisePool = legExercises.isEmpty ? Array(exercises.prefix(3)) : legExercises
+                }
+
+                // Pick 3-4 exercises for this workout
+                let selectedExercises = Array(exercisePool.shuffled().prefix(Int.random(in: 3...4)))
+
+                var entries: [ExerciseEntry] = []
+
+                for exercise in selectedExercises {
+                    // Progressive overload - weight increases over time
+                    let progressFactor = 1.0 + (Double(13 - weeksAgo) * 0.02) // ~2% increase per week
+                    let baseWeight = exercise.defaultWeight * progressFactor
+                    let weight = baseWeight + Double.random(in: -5...5)
+
+                    var sets: [WorkoutSet] = []
+
+                    // 1 warmup + 3-4 working sets
+                    sets.append(WorkoutSet(
+                        exerciseId: exercise.id,
+                        weight: weight * 0.5,
+                        reps: 10,
+                        isWarmup: true,
+                        completedAt: workoutDate
+                    ))
+
+                    let workingSetsCount = Int.random(in: 3...4)
+                    for setIndex in 0..<workingSetsCount {
+                        let reps = exercise.defaultReps + Int.random(in: -2...2)
+                        let setWeight = weight - (Double(setIndex) * 2.5) // Slight fatigue
+                        sets.append(WorkoutSet(
+                            exerciseId: exercise.id,
+                            weight: max(setWeight, exercise.defaultWeight * 0.7),
+                            reps: max(reps, 5),
+                            isWarmup: false,
+                            completedAt: workoutDate.addingTimeInterval(Double(setIndex) * 180)
+                        ))
+                    }
+
+                    entries.append(ExerciseEntry(
+                        exercise: exercise,
+                        sets: sets,
+                        startedAt: workoutDate
+                    ))
+                }
+
+                let duration = TimeInterval(Int.random(in: 45...75) * 60)
+                let workout = Workout(
+                    name: "",
+                    entries: entries,
+                    startedAt: workoutDate,
+                    completedAt: workoutDate.addingTimeInterval(duration)
+                )
+
+                sampleWorkouts.append(workout)
+            }
+        }
+
+        // Sort by date descending
+        workouts = sampleWorkouts.sorted { $0.startedAt > $1.startedAt }
+        saveWorkouts()
+        triggerHaptic(.success)
+    }
+
+    func clearAllData() {
+        workouts.removeAll()
+        activeWorkout = nil
+        saveWorkouts()
+        saveActiveWorkout()
+        triggerHaptic(.warning)
+    }
+    #endif
 }
