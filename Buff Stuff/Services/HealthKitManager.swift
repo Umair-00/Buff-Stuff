@@ -29,6 +29,10 @@ class HealthKitManager {
     private let healthKitEnabledKey = "buff_stuff_healthkit_enabled"
     private let syncedWorkoutIdsKey = "buff_stuff_synced_workout_ids"
 
+    // MARK: - Live Workout Session
+    private var workoutSession: HKWorkoutSession?
+    private var workoutBuilder: HKWorkoutBuilder?
+
     // Types we want to write
     private let workoutType = HKQuantityType.workoutType()
 
@@ -71,6 +75,35 @@ class HealthKitManager {
 
         // Update authorization status after request
         await checkAuthorizationStatus()
+    }
+
+    // MARK: - Live Workout Session
+
+    /// Start a live workout session (triggers watch tracking if paired)
+    func startWorkoutSession() async throws {
+        guard isAvailable else { throw HealthKitError.notAvailable }
+
+        let configuration = HKWorkoutConfiguration()
+        configuration.activityType = .functionalStrengthTraining
+        configuration.locationType = .indoor
+
+        workoutSession = try HKWorkoutSession(healthStore: healthStore, configuration: configuration)
+        workoutBuilder = workoutSession?.associatedWorkoutBuilder()
+
+        workoutSession?.startActivity(with: Date())
+        try await workoutBuilder?.beginCollection(at: Date())
+    }
+
+    /// End the live workout session
+    func endWorkoutSession() async throws {
+        guard let session = workoutSession, let builder = workoutBuilder else { return }
+
+        session.end()
+        try await builder.endCollection(at: Date())
+        try await builder.finishWorkout()
+
+        workoutSession = nil
+        workoutBuilder = nil
     }
 
     // MARK: - Calorie Query

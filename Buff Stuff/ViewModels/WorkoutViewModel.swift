@@ -214,6 +214,14 @@ class WorkoutViewModel {
     func startWorkout() {
         activeWorkout = Workout()
         saveActiveWorkout()
+
+        // Start HealthKit session if enabled
+        if HealthKitManager.shared.isHealthKitSyncEnabled {
+            Task {
+                try? await HealthKitManager.shared.startWorkoutSession()
+            }
+        }
+
         triggerHaptic(.medium)
     }
 
@@ -224,12 +232,14 @@ class WorkoutViewModel {
         activeWorkout = nil
         saveWorkouts()
         saveActiveWorkout()
-        triggerHaptic(.success)
 
-        // Sync to HealthKit
+        // End HealthKit session and sync workout
         Task {
+            try? await HealthKitManager.shared.endWorkoutSession()
             await saveWorkoutToHealthKit(workout)
         }
+
+        triggerHaptic(.success)
     }
 
     private func saveWorkoutToHealthKit(_ workout: Workout) async {
@@ -241,6 +251,11 @@ class WorkoutViewModel {
     func cancelWorkout() {
         activeWorkout = nil
         saveActiveWorkout()
+
+        // End HealthKit session if discarding
+        Task {
+            try? await HealthKitManager.shared.endWorkoutSession()
+        }
     }
 
     func deleteWorkout(_ workout: Workout) {
