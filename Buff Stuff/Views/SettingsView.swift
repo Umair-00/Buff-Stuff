@@ -42,6 +42,9 @@ struct SettingsView: View {
 
                     // Notes Section
                     notesSection
+
+                    // App Version
+                    appVersionSection
                 }
                 .padding(.horizontal, Theme.Spacing.md)
                 .padding(.bottom, 120)
@@ -274,6 +277,30 @@ struct SettingsView: View {
     // MARK: - Notes Section
     private var notesSection: some View {
         NotesContentView()
+    }
+
+    // MARK: - App Version Section
+    private var appVersionSection: some View {
+        VStack(spacing: Theme.Spacing.sm) {
+            Text("BUFF STUFF")
+                .font(Theme.Typography.caption)
+                .foregroundColor(Theme.Colors.textMuted)
+                .tracking(1)
+
+            Text("Version \(appVersion) (\(buildNumber))")
+                .font(Theme.Typography.captionSmall)
+                .foregroundColor(Theme.Colors.textMuted)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.top, Theme.Spacing.lg)
+    }
+
+    private var appVersion: String {
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
+    }
+
+    private var buildNumber: String {
+        Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
     }
 
     // MARK: - Actions
