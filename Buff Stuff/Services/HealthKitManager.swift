@@ -35,6 +35,7 @@ class HealthKitManager {
     // Types we want to read
     private let activeEnergyType = HKQuantityType(.activeEnergyBurned)
     private let basalEnergyType = HKQuantityType(.basalEnergyBurned)
+    private let heartRateType = HKQuantityType(.heartRate)
 
     // MARK: - Initialization
     private init() {
@@ -64,7 +65,7 @@ class HealthKitManager {
         }
 
         let typesToWrite: Set<HKSampleType> = [workoutType]
-        let typesToRead: Set<HKObjectType> = [activeEnergyType, basalEnergyType]
+        let typesToRead: Set<HKObjectType> = [activeEnergyType, basalEnergyType, heartRateType]
 
         try await healthStore.requestAuthorization(toShare: typesToWrite, read: typesToRead)
 
@@ -116,6 +117,26 @@ class HealthKitManager {
         return calories
     }
 
+    /// Query heart rate samples during a time window (from Apple Watch)
+    func getHeartRateSamples(from startDate: Date, to endDate: Date) async throws -> [HKQuantitySample] {
+        let predicate = HKSamplePredicate.quantitySample(
+            type: heartRateType,
+            predicate: HKQuery.predicateForSamples(
+                withStart: startDate,
+                end: endDate,
+                options: .strictStartDate
+            )
+        )
+
+        let descriptor = HKSampleQueryDescriptor(
+            predicates: [predicate],
+            sortDescriptors: [SortDescriptor(\.startDate, order: .forward)]
+        )
+
+        let samples = try await descriptor.result(for: healthStore)
+        return samples
+    }
+
     // MARK: - Workout Sync
 
     /// Save a completed workout to HealthKit
@@ -137,12 +158,16 @@ class HealthKitManager {
             return
         }
 
-        // Query calories burned during workout (from Apple Watch)
+        // Query data from Apple Watch during workout window
         let activeCalories = try? await getActiveCalories(
             from: workout.startedAt,
             to: completedAt
         )
         let basalCalories = try? await getBasalCalories(
+            from: workout.startedAt,
+            to: completedAt
+        )
+        let heartRateSamples = try? await getHeartRateSamples(
             from: workout.startedAt,
             to: completedAt
         )
@@ -185,6 +210,11 @@ class HealthKitManager {
                 end: completedAt
             )
             samples.append(basalSample)
+        }
+
+        // Heart rate samples (shows as "Avg. Heart Rate" in Fitness app)
+        if let heartRateSamples = heartRateSamples {
+            samples.append(contentsOf: heartRateSamples)
         }
 
         if !samples.isEmpty {
