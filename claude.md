@@ -240,3 +240,32 @@ buff_stuff_schema_version
 - HealthKit sync is opt-in (toggle in Settings)
 - Live workout indicator requires HealthKit enabled
 - Data export/import uses JSON format with schema versioning
+
+## Future Ideas
+
+### Smart Insights (Saved for Later)
+
+**Today View - Insight Cards:**
+- "Leg day? You haven't hit legs in 8 days" → tap to filter exercises
+- "3 day streak! Keep it up" → motivation
+- "Time for a deload? You've trained hard for 4 weeks"
+
+**Exercise Library - Badges:**
+- `↑ +5lbs` - Ready for progressive overload
+- `⚠ plateau` - Stalled for 3+ weeks
+- `★ PR zone` - Close to personal record
+
+**History/Progress - Predictions:**
+- "You're averaging +5lbs every 2 weeks. At this rate, you'll hit 225 by March."
+- "Volume down 15% this week vs last — recovery week?"
+
+### Other Apple Integrations (Saved for Later)
+
+| Feature | Description |
+|---------|-------------|
+| **watchOS App** | Companion app for wrist-based logging, triggers real HR tracking |
+| **WidgetKit** | Home/Lock screen widgets for quick start, streaks, today's stats |
+| **App Intents + Siri** | "Hey Siri, log bench press 185 for 8" hands-free |
+| **Live Activities** | Enhanced Dynamic Island with current exercise, set count, rest timer |
+| **CloudKit** | iCloud sync across devices, backup |
+| **Spotlight** | Search exercises from home screen |
