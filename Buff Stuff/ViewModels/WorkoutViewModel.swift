@@ -75,6 +75,27 @@ struct ExerciseProgress: Identifiable {
     let dataPoints: Int
 }
 
+// MARK: - Workout Suggestion
+struct WorkoutSuggestion {
+    enum SuggestionType {
+        case progressiveOverload  // Ready to increase weight
+        case consistentPerformance  // Doing well, keep it up
+        case newExercise  // Not enough data yet
+    }
+
+    let type: SuggestionType
+    let message: String
+    let suggestedWeight: Double?
+
+    var icon: String {
+        switch type {
+        case .progressiveOverload: return "arrow.up.circle.fill"
+        case .consistentPerformance: return "checkmark.circle.fill"
+        case .newExercise: return "star.circle.fill"
+        }
+    }
+}
+
 // MARK: - Workout View Model
 @MainActor
 @Observable
@@ -548,6 +569,68 @@ class WorkoutViewModel {
             )
         }
         .sorted { $0.exercise.name < $1.exercise.name }
+    }
+
+    // MARK: - Smart Suggestions
+
+    /// Generate a workout suggestion for an exercise based on history
+    func getSuggestion(for exercise: Exercise) -> WorkoutSuggestion? {
+        // Get recent workout data for this exercise (last 90 days)
+        let dataPoints = exerciseProgressDataPointsFull(exerciseId: exercise.id, in: .threeMonths)
+
+        // Need at least 2 data points to make a suggestion
+        guard dataPoints.count >= 2 else {
+            if dataPoints.isEmpty {
+                return nil  // No history at all
+            }
+            return WorkoutSuggestion(
+                type: .newExercise,
+                message: "Keep logging to unlock suggestions",
+                suggestedWeight: nil
+            )
+        }
+
+        // Analyze recent performance
+        let sortedByDate = dataPoints.sorted { $0.date > $1.date }
+        let recentSets = Array(sortedByDate.prefix(4))  // Last 4 sessions
+
+        // Check if user has been consistent at a weight×reps combo
+        let mostRecentWeight = recentSets[0].weight
+        let mostRecentReps = recentSets[0].reps
+
+        // Count how many times they've hit this or higher reps at this weight
+        let consistentCount = recentSets.filter {
+            $0.weight == mostRecentWeight && $0.reps >= mostRecentReps
+        }.count
+
+        // If they've hit the same weight for target reps 2+ times, suggest increase
+        if consistentCount >= 2 && mostRecentReps >= 5 {
+            let suggestedWeight = mostRecentWeight + exercise.weightIncrement
+            let formattedCurrent = formatWeight(mostRecentWeight)
+            let formattedSuggested = formatWeight(suggestedWeight)
+
+            return WorkoutSuggestion(
+                type: .progressiveOverload,
+                message: "You've hit \(formattedCurrent)×\(mostRecentReps) \(consistentCount) times — try \(formattedSuggested)?",
+                suggestedWeight: suggestedWeight
+            )
+        }
+
+        // Otherwise, show encouraging message
+        let formattedWeight = formatWeight(mostRecentWeight)
+        return WorkoutSuggestion(
+            type: .consistentPerformance,
+            message: "Last: \(formattedWeight) × \(mostRecentReps) — keep pushing",
+            suggestedWeight: nil
+        )
+    }
+
+    /// Format weight for display (no decimals if whole number)
+    private func formatWeight(_ weight: Double) -> String {
+        if weight.truncatingRemainder(dividingBy: 1) == 0 {
+            return String(format: "%.0f", weight)
+        }
+        return String(format: "%.1f", weight)
     }
 
     // MARK: - Sample Data Generation (Debug)

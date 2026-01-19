@@ -256,6 +256,7 @@
 				DEVELOPMENT_TEAM = 2NJH63B93Q;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "Buff Stuff reads your workout data to display activity summaries.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Buff Stuff saves your completed workouts to Apple Health to track your fitness progress.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -293,6 +294,7 @@
 				DEVELOPMENT_TEAM = 2NJH63B93Q;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "Buff Stuff reads your workout data to display activity summaries.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Buff Stuff saves your completed workouts to Apple Health to track your fitness progress.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;

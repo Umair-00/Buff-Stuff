@@ -37,6 +37,15 @@ struct QuickLogSheet: View {
                             .foregroundColor(Theme.Colors.textMuted)
                     }
                 }
+
+                // Smart suggestion
+                if let suggestion = viewModel.getSuggestion(for: exercise) {
+                    SuggestionBanner(suggestion: suggestion) {
+                        if let weight = suggestion.suggestedWeight {
+                            viewModel.quickLogWeight = weight
+                        }
+                    }
+                }
             }
 
             // Weight & Reps input - side by side
@@ -237,6 +246,51 @@ struct AdjusterButton: View {
     private func triggerHaptic() {
         let generator = UIImpactFeedbackGenerator(style: .light)
         generator.impactOccurred()
+    }
+}
+
+// MARK: - Suggestion Banner
+struct SuggestionBanner: View {
+    let suggestion: WorkoutSuggestion
+    let onTap: () -> Void
+
+    var body: some View {
+        Button(action: onTap) {
+            HStack(spacing: Theme.Spacing.sm) {
+                Image(systemName: suggestion.icon)
+                    .font(.system(size: 14))
+                    .foregroundColor(iconColor)
+
+                Text(suggestion.message)
+                    .font(Theme.Typography.caption)
+                    .foregroundColor(Theme.Colors.textSecondary)
+                    .lineLimit(1)
+
+                Spacer()
+
+                if suggestion.suggestedWeight != nil {
+                    Image(systemName: "arrow.right.circle")
+                        .font(.system(size: 12))
+                        .foregroundColor(Theme.Colors.accent)
+                }
+            }
+            .padding(.horizontal, Theme.Spacing.sm)
+            .padding(.vertical, Theme.Spacing.xs)
+            .background(Theme.Colors.surfaceElevated.opacity(0.6))
+            .cornerRadius(Theme.Radius.small)
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+
+    private var iconColor: Color {
+        switch suggestion.type {
+        case .progressiveOverload:
+            return Theme.Colors.accent
+        case .consistentPerformance:
+            return Theme.Colors.success
+        case .newExercise:
+            return Theme.Colors.textMuted
+        }
     }
 }
 
