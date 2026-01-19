@@ -214,6 +214,37 @@ buff_stuff_schema_version
 3. Call load in ViewModel init
 4. Call save after mutations
 
+## Testing
+
+**Framework:** XCTest (built into Xcode)
+
+**Run Tests:**
+- Xcode: `⌘+U` or Product → Test
+- CLI: `xcodebuild test -scheme "Buff Stuff" -destination "platform=iOS Simulator,name=iPhone 17 Pro"`
+
+**Test Files:**
+```
+Buff StuffTests/
+├── WorkoutViewModelTests.swift    # Workout lifecycle, set logging, exercise management
+├── SuggestionTests.swift          # Progressive overload suggestions, thresholds
+├── ProgressCalculationTests.swift # Progress status, volume calculations, time periods
+└── Buff_StuffTests.swift          # Xcode default test file
+```
+
+**Test Coverage:**
+- Workout start/finish/cancel lifecycle
+- Set logging and volume calculations
+- Warmup exclusion from totals
+- Smart suggestion logic (progressive overload, thresholds)
+- Progress status calculations (progressing/plateau/declining)
+- Time period filtering (7D/30D/90D/ALL)
+
+**Writing New Tests:**
+1. Add test file to `Buff StuffTests/` folder
+2. Import `@testable import Buff_Stuff`
+3. Use `@MainActor` for tests accessing ViewModels
+4. Use async `setUp()`/`tearDown()` for test isolation
+
 ## UI Structure
 
 **Tab Navigation:** 5 tabs with center FAB button
