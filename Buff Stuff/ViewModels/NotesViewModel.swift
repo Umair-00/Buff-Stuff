@@ -11,6 +11,9 @@ class NotesViewModel {
     // User Defaults key
     private let changeRequestsKey = "buff_stuff_change_requests"
 
+    // Discord webhook for feedback notifications
+    private let discordWebhookURL = "https://discord.com/api/webhooks/1462706107586838660/V9E7S-PIwaIjrMukXKhZn296LiE8pIhTOGSvL7g630cxnxg1ocJHIL_hrg2Rf4iEvlvB"
+
     // MARK: - Initialization
     init() {
         loadData()
@@ -47,6 +50,7 @@ class NotesViewModel {
         let request = ChangeRequest(content: content)
         changeRequests.insert(request, at: 0)
         saveChangeRequests()
+        sendToDiscord(content)
         triggerHaptic(.light)
     }
 
@@ -54,6 +58,24 @@ class NotesViewModel {
         changeRequests.removeAll { $0.id == request.id }
         saveChangeRequests()
         triggerHaptic(.light)
+    }
+
+    // MARK: - Discord Notification
+    private func sendToDiscord(_ content: String) {
+        guard let url = URL(string: discordWebhookURL) else { return }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let payload: [String: Any] = [
+            "content": "📝 **New Feedback**\n\(content)"
+        ]
+
+        request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
+
+        // Fire and forget - don't block UI or handle errors
+        URLSession.shared.dataTask(with: request).resume()
     }
 
     // MARK: - Haptic Feedback
