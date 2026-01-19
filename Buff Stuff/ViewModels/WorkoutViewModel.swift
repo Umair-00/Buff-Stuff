@@ -88,6 +88,8 @@ class WorkoutViewModel {
     private let exercisesKey = "buff_stuff_exercises"
     private let workoutsKey = "buff_stuff_workouts"
     private let activeWorkoutKey = "buff_stuff_active_workout"
+    private let schemaVersionKey = "buff_stuff_schema_version"
+    private let currentSchemaVersion = 1
 
     // MARK: - Initialization
     init() {
@@ -102,23 +104,48 @@ class WorkoutViewModel {
 
     // MARK: - Data Persistence
     private func loadData() {
-        // Load exercises
-        if let data = UserDefaults.standard.data(forKey: exercisesKey),
-           let decoded = try? JSONDecoder().decode([Exercise].self, from: data) {
-            exercises = decoded
+        // Save schema version for future migrations
+        UserDefaults.standard.set(currentSchemaVersion, forKey: schemaVersionKey)
+
+        // Load exercises with error handling
+        if let data = UserDefaults.standard.data(forKey: exercisesKey) {
+            do {
+                exercises = try JSONDecoder().decode([Exercise].self, from: data)
+            } catch {
+                print("⚠️ Failed to decode exercises: \(error.localizedDescription)")
+                backupCorruptedData(data, key: exercisesKey)
+            }
         }
 
-        // Load workouts
-        if let data = UserDefaults.standard.data(forKey: workoutsKey),
-           let decoded = try? JSONDecoder().decode([Workout].self, from: data) {
-            workouts = decoded.sorted { $0.startedAt > $1.startedAt }
+        // Load workouts with error handling
+        if let data = UserDefaults.standard.data(forKey: workoutsKey) {
+            do {
+                workouts = try JSONDecoder().decode([Workout].self, from: data)
+                    .sorted { $0.startedAt > $1.startedAt }
+            } catch {
+                print("⚠️ Failed to decode workouts: \(error.localizedDescription)")
+                backupCorruptedData(data, key: workoutsKey)
+            }
         }
 
-        // Load active workout
-        if let data = UserDefaults.standard.data(forKey: activeWorkoutKey),
-           let decoded = try? JSONDecoder().decode(Workout.self, from: data) {
-            activeWorkout = decoded
+        // Load active workout with error handling
+        if let data = UserDefaults.standard.data(forKey: activeWorkoutKey) {
+            do {
+                activeWorkout = try JSONDecoder().decode(Workout.self, from: data)
+            } catch {
+                print("⚠️ Failed to decode active workout: \(error.localizedDescription)")
+                backupCorruptedData(data, key: activeWorkoutKey)
+                // Clear corrupted active workout so user can start fresh
+                UserDefaults.standard.removeObject(forKey: activeWorkoutKey)
+            }
         }
+    }
+
+    /// Backup corrupted data for potential recovery
+    private func backupCorruptedData(_ data: Data, key: String) {
+        let backupKey = "\(key)_backup_\(Int(Date().timeIntervalSince1970))"
+        UserDefaults.standard.set(data, forKey: backupKey)
+        print("📦 Backed up corrupted data to: \(backupKey)")
     }
 
     private func saveExercises() {

@@ -18,10 +18,22 @@ class NotesViewModel {
 
     // MARK: - Data Persistence
     private func loadData() {
-        if let data = UserDefaults.standard.data(forKey: changeRequestsKey),
-           let decoded = try? JSONDecoder().decode([ChangeRequest].self, from: data) {
-            changeRequests = decoded.sorted { $0.createdAt > $1.createdAt }
+        if let data = UserDefaults.standard.data(forKey: changeRequestsKey) {
+            do {
+                changeRequests = try JSONDecoder().decode([ChangeRequest].self, from: data)
+                    .sorted { $0.createdAt > $1.createdAt }
+            } catch {
+                print("⚠️ Failed to decode change requests: \(error.localizedDescription)")
+                backupCorruptedData(data, key: changeRequestsKey)
+            }
         }
+    }
+
+    /// Backup corrupted data for potential recovery
+    private func backupCorruptedData(_ data: Data, key: String) {
+        let backupKey = "\(key)_backup_\(Int(Date().timeIntervalSince1970))"
+        UserDefaults.standard.set(data, forKey: backupKey)
+        print("📦 Backed up corrupted data to: \(backupKey)")
     }
 
     private func saveChangeRequests() {
