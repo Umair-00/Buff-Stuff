@@ -13,7 +13,7 @@ struct ContentView: View {
     @State private var selectedTab: Tab = .today
 
     enum Tab {
-        case today, exercises, history, notes
+        case today, exercises, history, settings
     }
 
     var body: some View {
@@ -29,8 +29,8 @@ struct ContentView: View {
                 HistoryView()
                     .tag(Tab.history)
 
-                NotesView()
-                    .tag(Tab.notes)
+                SettingsView()
+                    .tag(Tab.settings)
                     .environment(notesViewModel)
             }
             .environment(viewModel)
@@ -101,11 +101,11 @@ struct CustomTabBar: View {
             }
 
             TabBarButton(
-                icon: "note.text",
-                label: "Notes",
-                isSelected: selectedTab == .notes
+                icon: "gearshape.fill",
+                label: "Settings",
+                isSelected: selectedTab == .settings
             ) {
-                selectedTab = .notes
+                selectedTab = .settings
             }
         }
         .padding(.horizontal, Theme.Spacing.md)

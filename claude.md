@@ -95,6 +95,30 @@ Buff Stuff/
 - `MuscleGroup`: 11 options with color and icon
 - `Equipment`: 8 options with icon
 
+## Progressive Overload Algorithm
+
+The History tab tracks progressive overload using volume-based comparison.
+
+**Core Metric:** Volume = weight × reps (from top set per session)
+- Top set = working set with highest volume in a session
+- Warmup sets excluded (return 0 volume)
+
+**Requirements:**
+- Minimum 4 sessions needed to calculate progress
+- Fewer than 4 sessions shows "new exercise" status
+
+**Calculation:**
+1. Take 2 most recent sessions → compute average volume (recentAvg)
+2. Take 2 sessions before those (sessions 3-4) → compute average volume (baselineAvg)
+3. Percent change = ((recentAvg - baselineAvg) / baselineAvg) × 100
+
+**Status Thresholds:**
+- `> +2%` → Progressing (green)
+- `< -2%` → Declining (red)
+- `-2% to +2%` → Plateau (yellow)
+
+**Implementation:** `WorkoutViewModel.allExerciseProgress(in:)` at line ~389
+
 ## UserDefaults Keys
 
 ```swift

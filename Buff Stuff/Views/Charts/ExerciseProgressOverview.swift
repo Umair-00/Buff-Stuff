@@ -11,7 +11,7 @@ import Charts
 struct ExerciseProgressOverview: View {
     @Environment(WorkoutViewModel.self) var viewModel
     let period: ProgressTimePeriod
-    @State private var expandedExerciseId: UUID?
+    @State private var selectedProgress: ExerciseProgress?
 
     private var progressData: [ExerciseProgress] {
         viewModel.allExerciseProgress(in: period)
@@ -46,23 +46,11 @@ struct ExerciseProgressOverview: View {
                         VStack(spacing: 0) {
                             ExerciseProgressRow(
                                 progress: progress,
-                                isExpanded: expandedExerciseId == progress.id,
                                 onTap: {
-                                    withAnimation(.easeInOut(duration: 0.2)) {
-                                        if expandedExerciseId == progress.id {
-                                            expandedExerciseId = nil
-                                        } else {
-                                            expandedExerciseId = progress.id
-                                        }
-                                    }
+                                    selectedProgress = progress
                                     triggerHaptic()
                                 }
                             )
-
-                            // Expanded chart view
-                            if expandedExerciseId == progress.id {
-                                expandedChart(for: progress)
-                            }
 
                             // Divider (except last)
                             if progress.id != progressData.last?.id {
@@ -74,7 +62,7 @@ struct ExerciseProgressOverview: View {
                 }
 
                 // Hint text
-                Text("Tap exercise to see detailed chart")
+                Text("Tap exercise to see progress chart")
                     .font(Theme.Typography.captionSmall)
                     .foregroundColor(Theme.Colors.textMuted)
                     .frame(maxWidth: .infinity)
@@ -85,6 +73,17 @@ struct ExerciseProgressOverview: View {
         }
         .padding(Theme.Spacing.md)
         .cardStyle()
+        .sheet(item: $selectedProgress) { progress in
+            ExerciseProgressSheet(
+                exercise: progress.exercise,
+                progress: progress,
+                period: period
+            )
+            .environment(viewModel)
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
+            .presentationBackground(Theme.Colors.surface)
+        }
     }
 
     // MARK: - Progress Summary
@@ -101,124 +100,6 @@ struct ExerciseProgressOverview: View {
                 .font(Theme.Typography.mono(12))
                 .foregroundColor(Theme.Colors.textPrimary)
         }
-    }
-
-    // MARK: - Expanded Chart
-    private func expandedChart(for progress: ExerciseProgress) -> some View {
-        let dataPoints = viewModel.exerciseProgressDataPointsFull(
-            exerciseId: progress.exercise.id,
-            in: period
-        )
-        let muscleColor = progress.exercise.muscleGroup.color
-        let repsColor = muscleColor.opacity(0.5)
-
-        return VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
-            if dataPoints.count >= 2 {
-                // Weight chart
-                VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
-                    Text("WEIGHT")
-                        .font(Theme.Typography.captionSmall)
-                        .foregroundColor(Theme.Colors.textMuted)
-                        .tracking(0.5)
-
-                    Chart(dataPoints, id: \.date) { point in
-                        LineMark(
-                            x: .value("Date", point.date),
-                            y: .value("Weight", point.weight)
-                        )
-                        .foregroundStyle(muscleColor)
-                        .lineStyle(StrokeStyle(lineWidth: 2))
-
-                        PointMark(
-                            x: .value("Date", point.date),
-                            y: .value("Weight", point.weight)
-                        )
-                        .foregroundStyle(muscleColor)
-                        .symbolSize(30)
-                    }
-                    .chartXAxis {
-                        AxisMarks(values: .automatic(desiredCount: 4)) { _ in
-                            AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
-                                .foregroundStyle(Theme.Colors.surfaceElevated)
-                            AxisValueLabel()
-                                .font(Theme.Typography.captionSmall)
-                                .foregroundStyle(Theme.Colors.textMuted)
-                        }
-                    }
-                    .chartYAxis {
-                        AxisMarks(position: .leading, values: .automatic(desiredCount: 3)) { value in
-                            AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
-                                .foregroundStyle(Theme.Colors.surfaceElevated)
-                            AxisValueLabel {
-                                if let weight = value.as(Double.self) {
-                                    Text("\(Int(weight)) lbs")
-                                        .font(Theme.Typography.captionSmall)
-                                        .foregroundStyle(Theme.Colors.textMuted)
-                                }
-                            }
-                        }
-                    }
-                    .frame(height: 100)
-                }
-
-                // Reps chart
-                VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
-                    Text("REPS")
-                        .font(Theme.Typography.captionSmall)
-                        .foregroundColor(Theme.Colors.textMuted)
-                        .tracking(0.5)
-
-                    Chart(dataPoints, id: \.date) { point in
-                        LineMark(
-                            x: .value("Date", point.date),
-                            y: .value("Reps", point.reps)
-                        )
-                        .foregroundStyle(repsColor)
-                        .lineStyle(StrokeStyle(lineWidth: 2))
-
-                        PointMark(
-                            x: .value("Date", point.date),
-                            y: .value("Reps", point.reps)
-                        )
-                        .foregroundStyle(repsColor)
-                        .symbolSize(30)
-                    }
-                    .chartXAxis {
-                        AxisMarks(values: .automatic(desiredCount: 4)) { _ in
-                            AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
-                                .foregroundStyle(Theme.Colors.surfaceElevated)
-                            AxisValueLabel()
-                                .font(Theme.Typography.captionSmall)
-                                .foregroundStyle(Theme.Colors.textMuted)
-                        }
-                    }
-                    .chartYAxis {
-                        AxisMarks(position: .leading, values: .automatic(desiredCount: 3)) { value in
-                            AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
-                                .foregroundStyle(Theme.Colors.surfaceElevated)
-                            AxisValueLabel {
-                                if let reps = value.as(Int.self) {
-                                    Text("\(reps)")
-                                        .font(Theme.Typography.captionSmall)
-                                        .foregroundStyle(Theme.Colors.textMuted)
-                                }
-                            }
-                        }
-                    }
-                    .frame(height: 80)
-                }
-            } else {
-                Text("Need 2+ sessions for chart")
-                    .font(Theme.Typography.captionSmall)
-                    .foregroundColor(Theme.Colors.textMuted)
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .frame(height: 60)
-            }
-        }
-        .padding(.vertical, Theme.Spacing.sm)
-        .padding(.horizontal, Theme.Spacing.xs)
-        .background(Theme.Colors.surfaceElevated.opacity(0.5))
-        .transition(.opacity.combined(with: .move(edge: .top)))
     }
 
     // MARK: - Empty State
@@ -249,7 +130,6 @@ struct ExerciseProgressOverview: View {
 // MARK: - Exercise Progress Row
 struct ExerciseProgressRow: View {
     let progress: ExerciseProgress
-    let isExpanded: Bool
     let onTap: () -> Void
 
     var body: some View {
@@ -280,8 +160,8 @@ struct ExerciseProgressRow: View {
                         .foregroundColor(Theme.Colors.textMuted)
                 }
 
-                // Expand indicator
-                Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                // Chevron to indicate tappable
+                Image(systemName: "chevron.right")
                     .font(.caption2)
                     .foregroundColor(Theme.Colors.textMuted)
             }
