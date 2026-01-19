@@ -6,11 +6,27 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXContainerItemProxy section */
+		4524A9C32F1ED2090047D9E5 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 452B55222F1711BF001D7704 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 452B55292F1711BF001D7704;
+			remoteInfo = "Buff Stuff";
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
+		4524A9BF2F1ED2090047D9E5 /* Buff StuffTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Buff StuffTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		452B552A2F1711BF001D7704 /* Buff Stuff.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Buff Stuff.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		4524A9C02F1ED2090047D9E5 /* Buff StuffTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "Buff StuffTests";
+			sourceTree = "<group>";
+		};
 		452B552C2F1711BF001D7704 /* Buff Stuff */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = "Buff Stuff";
@@ -19,6 +35,13 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		4524A9BC2F1ED2090047D9E5 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		452B55272F1711BF001D7704 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -33,6 +56,7 @@
 			isa = PBXGroup;
 			children = (
 				452B552C2F1711BF001D7704 /* Buff Stuff */,
+				4524A9C02F1ED2090047D9E5 /* Buff StuffTests */,
 				452B552B2F1711BF001D7704 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -41,6 +65,7 @@
 			isa = PBXGroup;
 			children = (
 				452B552A2F1711BF001D7704 /* Buff Stuff.app */,
+				4524A9BF2F1ED2090047D9E5 /* Buff StuffTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -48,6 +73,29 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		4524A9BE2F1ED2090047D9E5 /* Buff StuffTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4524A9C72F1ED2090047D9E5 /* Build configuration list for PBXNativeTarget "Buff StuffTests" */;
+			buildPhases = (
+				4524A9BB2F1ED2090047D9E5 /* Sources */,
+				4524A9BC2F1ED2090047D9E5 /* Frameworks */,
+				4524A9BD2F1ED2090047D9E5 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				4524A9C42F1ED2090047D9E5 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				4524A9C02F1ED2090047D9E5 /* Buff StuffTests */,
+			);
+			name = "Buff StuffTests";
+			packageProductDependencies = (
+			);
+			productName = "Buff StuffTests";
+			productReference = 4524A9BF2F1ED2090047D9E5 /* Buff StuffTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		452B55292F1711BF001D7704 /* Buff Stuff */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 452B55352F1711C0001D7704 /* Build configuration list for PBXNativeTarget "Buff Stuff" */;
@@ -80,6 +128,10 @@
 				LastSwiftUpdateCheck = 2620;
 				LastUpgradeCheck = 2620;
 				TargetAttributes = {
+					4524A9BE2F1ED2090047D9E5 = {
+						CreatedOnToolsVersion = 26.2;
+						TestTargetID = 452B55292F1711BF001D7704;
+					};
 					452B55292F1711BF001D7704 = {
 						CreatedOnToolsVersion = 26.2;
 					};
@@ -100,11 +152,19 @@
 			projectRoot = "";
 			targets = (
 				452B55292F1711BF001D7704 /* Buff Stuff */,
+				4524A9BE2F1ED2090047D9E5 /* Buff StuffTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		4524A9BD2F1ED2090047D9E5 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		452B55282F1711BF001D7704 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -115,6 +175,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		4524A9BB2F1ED2090047D9E5 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		452B55262F1711BF001D7704 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -124,7 +191,55 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		4524A9C42F1ED2090047D9E5 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 452B55292F1711BF001D7704 /* Buff Stuff */;
+			targetProxy = 4524A9C32F1ED2090047D9E5 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		4524A9C52F1ED2090047D9E5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.buffstuff.Buff-StuffTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Buff Stuff.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Buff Stuff";
+			};
+			name = Debug;
+		};
+		4524A9C62F1ED2090047D9E5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.buffstuff.Buff-StuffTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Buff Stuff.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Buff Stuff";
+			};
+			name = Release;
+		};
 		452B55332F1711C0001D7704 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -323,6 +438,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		4524A9C72F1ED2090047D9E5 /* Build configuration list for PBXNativeTarget "Buff StuffTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4524A9C52F1ED2090047D9E5 /* Debug */,
+				4524A9C62F1ED2090047D9E5 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		452B55252F1711BF001D7704 /* Build configuration list for PBXProject "Buff Stuff" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
