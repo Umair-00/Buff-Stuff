@@ -157,6 +157,17 @@ class WorkoutViewModel {
         saveWorkouts()
         saveActiveWorkout()
         triggerHaptic(.success)
+
+        // Sync to HealthKit
+        Task {
+            await saveWorkoutToHealthKit(workout)
+        }
+    }
+
+    private func saveWorkoutToHealthKit(_ workout: Workout) async {
+        let healthKit = HealthKitManager.shared
+        guard healthKit.isHealthKitSyncEnabled, healthKit.isAuthorized else { return }
+        try? await healthKit.saveWorkout(workout)
     }
 
     func cancelWorkout() {
@@ -350,19 +361,21 @@ class WorkoutViewModel {
     }
 
     /// Returns full data points for a specific exercise (weight, reps, volume per session)
-    /// Uses top set (highest volume working set) from each session
-    func exerciseProgressDataPointsFull(exerciseId: UUID, in period: ProgressTimePeriod) -> [(date: Date, weight: Double, reps: Int, volume: Double)] {
+    /// Uses top set (highest volume working set) for volume/reps, and tracks heaviest weight separately
+    func exerciseProgressDataPointsFull(exerciseId: UUID, in period: ProgressTimePeriod) -> [(date: Date, weight: Double, reps: Int, volume: Double, topWeight: Double)] {
         workouts(in: period)
-            .compactMap { workout -> (date: Date, weight: Double, reps: Int, volume: Double)? in
+            .compactMap { workout -> (date: Date, weight: Double, reps: Int, volume: Double, topWeight: Double)? in
                 guard let entry = workout.entries.first(where: { $0.exercise.id == exerciseId }) else {
                     return nil
                 }
                 // Find top set by volume (weight × reps)
-                guard let topSet = entry.workingSets.max(by: { $0.volume < $1.volume }),
-                      topSet.volume > 0 else {
+                guard let topVolumeSet = entry.workingSets.max(by: { $0.volume < $1.volume }),
+                      topVolumeSet.volume > 0 else {
                     return nil
                 }
-                return (date: workout.startedAt, weight: topSet.weight, reps: topSet.reps, volume: topSet.volume)
+                // Find heaviest weight lifted (regardless of reps)
+                let topWeight = entry.workingSets.map { $0.weight }.max() ?? topVolumeSet.weight
+                return (date: workout.startedAt, weight: topVolumeSet.weight, reps: topVolumeSet.reps, volume: topVolumeSet.volume, topWeight: topWeight)
             }
             .sorted { $0.date < $1.date }
     }
