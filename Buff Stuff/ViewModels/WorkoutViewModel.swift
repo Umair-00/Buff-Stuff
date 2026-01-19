@@ -2,6 +2,14 @@ import Foundation
 import SwiftUI
 import Observation
 
+// MARK: - Data Backup Structure
+struct DataBackup: Codable {
+    let schemaVersion: Int
+    let exportDate: Date
+    let exercises: [Exercise]
+    let workouts: [Workout]
+}
+
 // MARK: - Progress Time Period
 enum ProgressTimePeriod: String, CaseIterable, Identifiable {
     case week = "7D"
@@ -167,6 +175,39 @@ class WorkoutViewModel {
         } else {
             UserDefaults.standard.removeObject(forKey: activeWorkoutKey)
         }
+    }
+
+    // MARK: - Export / Import
+
+    /// Export all data to JSON
+    func exportData() throws -> Data {
+        let backup = DataBackup(
+            schemaVersion: currentSchemaVersion,
+            exportDate: Date(),
+            exercises: exercises,
+            workouts: workouts
+        )
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        encoder.dateEncodingStrategy = .iso8601
+        return try encoder.encode(backup)
+    }
+
+    /// Import data from JSON backup
+    func importData(from data: Data) throws {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        let backup = try decoder.decode(DataBackup.self, from: data)
+
+        // Replace current data with imported data
+        exercises = backup.exercises
+        workouts = backup.workouts.sorted { $0.startedAt > $1.startedAt }
+
+        // Save to UserDefaults
+        saveExercises()
+        saveWorkouts()
+
+        print("✅ Imported \(backup.exercises.count) exercises and \(backup.workouts.count) workouts")
     }
 
     // MARK: - Workout Management
