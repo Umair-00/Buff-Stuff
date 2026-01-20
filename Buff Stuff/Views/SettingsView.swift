@@ -40,9 +40,6 @@ struct SettingsView: View {
                     // Data Backup Section
                     dataBackupSection
 
-                    // Notes Section
-                    notesSection
-
                     // App Version
                     appVersionSection
                 }
@@ -274,11 +271,6 @@ struct SettingsView: View {
         }
     }
 
-    // MARK: - Notes Section
-    private var notesSection: some View {
-        NotesContentView()
-    }
-
     // MARK: - App Version Section
     private var appVersionSection: some View {
         VStack(spacing: Theme.Spacing.sm) {
@@ -362,138 +354,6 @@ struct SettingsView: View {
     private func triggerHaptic(_ type: UINotificationFeedbackGenerator.FeedbackType) {
         let generator = UINotificationFeedbackGenerator()
         generator.notificationOccurred(type)
-    }
-}
-
-// MARK: - Notes Content View (Embedded Notes Section)
-struct NotesContentView: View {
-    @Environment(NotesViewModel.self) var viewModel
-    @State private var newNote: String = ""
-    @FocusState private var isInputFocused: Bool
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: Theme.Spacing.md) {
-            // Section header
-            HStack {
-                Image(systemName: "note.text")
-                    .foregroundColor(Theme.Colors.accent)
-                Text("Change Requests")
-                    .font(Theme.Typography.headline)
-                    .foregroundColor(Theme.Colors.textPrimary)
-
-                Spacer()
-
-                if !viewModel.changeRequests.isEmpty {
-                    Text("\(viewModel.changeRequests.count)")
-                        .font(Theme.Typography.caption)
-                        .foregroundColor(Theme.Colors.textMuted)
-                }
-            }
-
-            // Input field
-            inputSection
-
-            // Notes list
-            if viewModel.changeRequests.isEmpty {
-                emptyState
-            } else {
-                notesList
-            }
-        }
-    }
-
-    private var inputSection: some View {
-        HStack(spacing: Theme.Spacing.sm) {
-            TextField("Add a change request...", text: $newNote)
-                .font(Theme.Typography.body)
-                .foregroundColor(Theme.Colors.textPrimary)
-                .focused($isInputFocused)
-                .submitLabel(.done)
-                .onSubmit {
-                    addNote()
-                }
-
-            Button {
-                addNote()
-            } label: {
-                Image(systemName: "plus")
-                    .font(.title3.weight(.bold))
-                    .foregroundColor(Theme.Colors.background)
-                    .frame(width: 44, height: 44)
-                    .background(newNote.isEmpty ? Theme.Colors.textMuted : Theme.Colors.accent)
-                    .cornerRadius(Theme.Radius.medium)
-            }
-            .disabled(newNote.isEmpty)
-        }
-        .padding(Theme.Spacing.md)
-        .cardStyle()
-    }
-
-    private var emptyState: some View {
-        VStack(spacing: Theme.Spacing.sm) {
-            Text("No change requests")
-                .font(Theme.Typography.caption)
-                .foregroundColor(Theme.Colors.textMuted)
-
-            Text("Add ideas and improvements here")
-                .font(Theme.Typography.captionSmall)
-                .foregroundColor(Theme.Colors.textMuted)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, Theme.Spacing.lg)
-    }
-
-    private var notesList: some View {
-        VStack(spacing: Theme.Spacing.sm) {
-            ForEach(viewModel.changeRequests) { request in
-                SettingsNoteRow(request: request)
-            }
-        }
-    }
-
-    private func addNote() {
-        let trimmed = newNote.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return }
-        viewModel.addChangeRequest(trimmed)
-        newNote = ""
-        isInputFocused = false
-    }
-}
-
-// MARK: - Settings Note Row
-struct SettingsNoteRow: View {
-    @Environment(NotesViewModel.self) var viewModel
-    let request: ChangeRequest
-
-    var body: some View {
-        HStack(alignment: .top) {
-            Rectangle()
-                .fill(Theme.Colors.accent)
-                .frame(width: 4)
-                .cornerRadius(2)
-
-            VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
-                Text(request.content)
-                    .font(Theme.Typography.body)
-                    .foregroundColor(Theme.Colors.textPrimary)
-
-                Text(request.createdAt.formatted(date: .abbreviated, time: .shortened))
-                    .font(Theme.Typography.captionSmall)
-                    .foregroundColor(Theme.Colors.textMuted)
-            }
-
-            Spacer()
-
-            Button {
-                viewModel.deleteChangeRequest(request)
-            } label: {
-                Image(systemName: "trash")
-                    .font(.body)
-                    .foregroundColor(Theme.Colors.danger)
-            }
-        }
-        .padding(Theme.Spacing.md)
-        .cardStyle()
     }
 }
 

@@ -2,14 +2,14 @@
 //  NotesView.swift
 //  Buff Stuff
 //
-//  Change requests and feature ideas
+//  Send feedback and feature requests
 //
 
 import SwiftUI
 
 struct NotesView: View {
     @Environment(NotesViewModel.self) var viewModel
-    @State private var newNote: String = ""
+    @State private var feedbackText: String = ""
     @FocusState private var isInputFocused: Bool
 
     var body: some View {
@@ -22,20 +22,11 @@ struct NotesView: View {
                     // Header
                     header
 
-                    // Input field
-                    inputSection
+                    // Feedback form
+                    feedbackForm
 
-                    // Stats
-                    if !viewModel.changeRequests.isEmpty {
-                        statsRow
-                    }
-
-                    // Notes list
-                    if viewModel.changeRequests.isEmpty {
-                        emptyState
-                    } else {
-                        notesList
-                    }
+                    // Info text
+                    infoText
                 }
                 .padding(.horizontal, Theme.Spacing.md)
                 .padding(.bottom, 120)
@@ -44,141 +35,116 @@ struct NotesView: View {
         .onTapGesture {
             isInputFocused = false
         }
+        .alert("Feedback Sent!", isPresented: Binding(
+            get: { viewModel.showSuccess },
+            set: { viewModel.showSuccess = $0 }
+        )) {
+            Button("OK") {
+                viewModel.showSuccess = false
+            }
+        } message: {
+            Text("Thanks for your feedback! We'll review it soon.")
+        }
     }
 
     // MARK: - Header
     private var header: some View {
         HStack {
             VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
-                Text("CHANGE REQUESTS")
+                Text("SEND US YOUR")
                     .font(Theme.Typography.caption)
                     .foregroundColor(Theme.Colors.textSecondary)
                     .tracking(1)
 
-                Text("NOTES")
+                Text("FEEDBACK")
                     .font(Theme.Typography.displaySmall())
                     .foregroundColor(Theme.Colors.textPrimary)
             }
 
             Spacer()
+
+            Image(systemName: "paperplane.fill")
+                .font(.title2)
+                .foregroundColor(Theme.Colors.accent)
         }
         .padding(.top, Theme.Spacing.lg)
     }
 
-    // MARK: - Input Section
-    private var inputSection: some View {
-        HStack(spacing: Theme.Spacing.sm) {
-            TextField("Add a change request...", text: $newNote)
+    // MARK: - Feedback Form
+    private var feedbackForm: some View {
+        VStack(spacing: Theme.Spacing.md) {
+            // Text input
+            TextEditor(text: $feedbackText)
                 .font(Theme.Typography.body)
                 .foregroundColor(Theme.Colors.textPrimary)
                 .focused($isInputFocused)
-                .submitLabel(.done)
-                .onSubmit {
-                    addNote()
-                }
+                .frame(minHeight: 150)
+                .scrollContentBackground(.hidden)
+                .padding(Theme.Spacing.sm)
+                .background(Theme.Colors.surfaceElevated)
+                .cornerRadius(Theme.Radius.medium)
+                .overlay(
+                    Group {
+                        if feedbackText.isEmpty {
+                            Text("Describe a bug, feature idea, or improvement...")
+                                .font(Theme.Typography.body)
+                                .foregroundColor(Theme.Colors.textMuted)
+                                .padding(Theme.Spacing.md)
+                                .allowsHitTesting(false)
+                        }
+                    },
+                    alignment: .topLeading
+                )
 
+            // Send button
             Button {
-                addNote()
+                sendFeedback()
             } label: {
-                Image(systemName: "plus")
-                    .font(.title3.weight(.bold))
-                    .foregroundColor(Theme.Colors.background)
-                    .frame(width: 44, height: 44)
-                    .background(newNote.isEmpty ? Theme.Colors.textMuted : Theme.Colors.accent)
-                    .cornerRadius(Theme.Radius.medium)
+                HStack {
+                    if viewModel.isSending {
+                        ProgressView()
+                            .tint(Theme.Colors.background)
+                    } else {
+                        Image(systemName: "paperplane.fill")
+                        Text("SEND FEEDBACK")
+                            .font(Theme.Typography.headline)
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, Theme.Spacing.md)
             }
-            .disabled(newNote.isEmpty)
+            .buttonStyle(AccentButtonStyle(isLarge: true))
+            .disabled(feedbackText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || viewModel.isSending)
         }
         .padding(Theme.Spacing.md)
         .cardStyle()
     }
 
-    // MARK: - Stats Row
-    private var statsRow: some View {
-        HStack(spacing: Theme.Spacing.md) {
-            MiniStatCard(
-                value: "\(viewModel.changeRequests.count)",
-                label: "Total",
-                icon: "note.text"
-            )
-        }
-    }
+    // MARK: - Info Text
+    private var infoText: some View {
+        VStack(spacing: Theme.Spacing.sm) {
+            HStack(spacing: Theme.Spacing.xs) {
+                Image(systemName: "info.circle")
+                Text("Your feedback helps us improve Buff Stuff")
+            }
+            .font(Theme.Typography.caption)
+            .foregroundColor(Theme.Colors.textMuted)
 
-    // MARK: - Empty State
-    private var emptyState: some View {
-        VStack(spacing: Theme.Spacing.md) {
-            Image(systemName: "note.text")
-                .font(.system(size: 48))
-                .foregroundColor(Theme.Colors.textMuted)
-
-            Text("No change requests yet")
-                .font(Theme.Typography.headline)
-                .foregroundColor(Theme.Colors.textSecondary)
-
-            Text("Add ideas and improvements as you use the app")
-                .font(Theme.Typography.caption)
+            Text("Bug reports, feature requests, and suggestions are all welcome!")
+                .font(Theme.Typography.captionSmall)
                 .foregroundColor(Theme.Colors.textMuted)
                 .multilineTextAlignment(.center)
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, Theme.Spacing.xxl)
-    }
-
-    // MARK: - Notes List
-    private var notesList: some View {
-        VStack(spacing: Theme.Spacing.sm) {
-            ForEach(viewModel.changeRequests) { request in
-                NoteRow(request: request)
-            }
-        }
+        .padding(.top, Theme.Spacing.md)
     }
 
     // MARK: - Actions
-    private func addNote() {
-        let trimmed = newNote.trimmingCharacters(in: .whitespacesAndNewlines)
+    private func sendFeedback() {
+        let trimmed = feedbackText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
-        viewModel.addChangeRequest(trimmed)
-        newNote = ""
+        viewModel.sendFeedback(trimmed)
+        feedbackText = ""
         isInputFocused = false
-    }
-}
-
-// MARK: - Note Row
-struct NoteRow: View {
-    @Environment(NotesViewModel.self) var viewModel
-    let request: ChangeRequest
-
-    var body: some View {
-        HStack(alignment: .top) {
-            // Color indicator
-            Rectangle()
-                .fill(Theme.Colors.accent)
-                .frame(width: 4)
-                .cornerRadius(2)
-
-            VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
-                Text(request.content)
-                    .font(Theme.Typography.body)
-                    .foregroundColor(Theme.Colors.textPrimary)
-
-                Text(request.createdAt.formatted(date: .abbreviated, time: .shortened))
-                    .font(Theme.Typography.captionSmall)
-                    .foregroundColor(Theme.Colors.textMuted)
-            }
-
-            Spacer()
-
-            // Delete button
-            Button {
-                viewModel.deleteChangeRequest(request)
-            } label: {
-                Image(systemName: "trash")
-                    .font(.body)
-                    .foregroundColor(Theme.Colors.danger)
-            }
-        }
-        .padding(Theme.Spacing.md)
-        .cardStyle()
     }
 }
 

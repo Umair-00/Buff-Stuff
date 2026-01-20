@@ -10,7 +10,7 @@ Buff Stuff is an iOS workout tracking app designed for strength training. The ap
 - Workout history with analytics (volume, sets, duration)
 - Smart suggestions for progressive overload
 - HealthKit integration (workout sync, live sessions)
-- Notes section for feature ideas and change requests
+- Feedback form (sends to Discord, no local storage)
 
 ## Tech Stack
 
@@ -33,18 +33,17 @@ Buff Stuff/
 ├── Models/
 │   ├── Workout.swift            # Workout session with ExerciseEntry
 │   ├── Exercise.swift           # Exercise definition + MuscleGroup/Equipment enums
-│   ├── WorkoutSet.swift         # Individual set (weight × reps)
-│   └── ChangeRequest.swift      # Notes/feature requests
+│   └── WorkoutSet.swift         # Individual set (weight × reps)
 ├── ViewModels/
 │   ├── WorkoutViewModel.swift   # Workouts, exercises, active session, suggestions
-│   └── NotesViewModel.swift     # Change requests state
+│   └── NotesViewModel.swift     # Feedback form state, Discord webhook
 ├── Services/
 │   └── HealthKitManager.swift   # HealthKit sync, live workout sessions
 └── Views/
     ├── TodayView.swift          # Active workout display
     ├── HistoryView.swift        # Workout history + analytics
     ├── ExerciseLibraryView.swift # Browse/manage exercises
-    ├── NotesView.swift          # Notes management
+    ├── NotesView.swift          # Feedback form (sends to Discord)
     ├── SettingsView.swift       # App settings, HealthKit toggle, data export
     ├── QuickLogSheet.swift      # Fast set logging modal + suggestions
     ├── ExercisePickerSheet.swift # Exercise selection
@@ -184,7 +183,6 @@ Workouts sync to Apple Health and display a live workout indicator.
 buff_stuff_exercises
 buff_stuff_workouts
 buff_stuff_active_workout
-buff_stuff_change_requests
 buff_stuff_healthkit_enabled
 buff_stuff_synced_workout_ids
 buff_stuff_schema_version
@@ -252,7 +250,7 @@ Buff StuffTests/
 2. Exercises - Library management
 3. (center) FAB - Quick add exercise
 4. History - Past workouts + analytics
-5. Settings - HealthKit toggle, data export/import, app info
+5. Feedback - Send bug reports/feature requests (via Discord)
 
 **Quick Log Flow:**
 1. Tap FAB (+) to open exercise picker
@@ -263,7 +261,8 @@ Buff StuffTests/
 
 ## Important Notes
 
-- App is fully offline (no backend)
+- App is fully offline (data stored locally, no backend)
+- Feedback form sends to Discord webhook (only outbound network call)
 - Uses iOS 17+ APIs (@Observable)
 - Forces dark color scheme
 - Warmup sets excluded from volume calculations

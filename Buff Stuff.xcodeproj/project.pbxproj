@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		4524A9D12F1ED3A00047D9E5 /* CLAUDE.md in Resources */ = {isa = PBXBuildFile; fileRef = 4524A9D02F1ED3A00047D9E5 /* CLAUDE.md */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		4524A9C32F1ED2090047D9E5 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -18,6 +22,7 @@
 
 /* Begin PBXFileReference section */
 		4524A9BF2F1ED2090047D9E5 /* Buff StuffTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Buff StuffTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		4524A9D02F1ED3A00047D9E5 /* CLAUDE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = CLAUDE.md; sourceTree = "<group>"; };
 		452B552A2F1711BF001D7704 /* Buff Stuff.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Buff Stuff.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -55,6 +60,7 @@
 		452B55212F1711BF001D7704 = {
 			isa = PBXGroup;
 			children = (
+				4524A9D02F1ED3A00047D9E5 /* CLAUDE.md */,
 				452B552C2F1711BF001D7704 /* Buff Stuff */,
 				4524A9C02F1ED2090047D9E5 /* Buff StuffTests */,
 				452B552B2F1711BF001D7704 /* Products */,
@@ -169,6 +175,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4524A9D12F1ED3A00047D9E5 /* CLAUDE.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
