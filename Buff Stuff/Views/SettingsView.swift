@@ -24,6 +24,10 @@ struct SettingsView: View {
     @State private var importErrorMessage: String = ""
     @State private var importedCounts: (exercises: Int, workouts: Int) = (0, 0)
 
+    // Feedback state
+    @State private var feedbackText: String = ""
+    @FocusState private var isFeedbackFocused: Bool
+
     var body: some View {
         ZStack {
             Theme.Colors.background
@@ -39,6 +43,9 @@ struct SettingsView: View {
 
                     // Data Backup Section
                     dataBackupSection
+
+                    // Feedback Section
+                    feedbackSection
 
                     // App Version
                     appVersionSection
@@ -269,6 +276,73 @@ struct SettingsView: View {
             .padding(Theme.Spacing.md)
             .cardStyle()
         }
+    }
+
+    // MARK: - Feedback Section
+    private var feedbackSection: some View {
+        VStack(alignment: .leading, spacing: Theme.Spacing.md) {
+            // Section header
+            HStack {
+                Image(systemName: "paperplane.fill")
+                    .foregroundColor(Theme.Colors.accent)
+                Text("Send Feedback")
+                    .font(Theme.Typography.headline)
+                    .foregroundColor(Theme.Colors.textPrimary)
+            }
+
+            // Input field
+            HStack(spacing: Theme.Spacing.sm) {
+                TextField("Bug report, feature idea...", text: $feedbackText)
+                    .font(Theme.Typography.body)
+                    .foregroundColor(Theme.Colors.textPrimary)
+                    .focused($isFeedbackFocused)
+                    .submitLabel(.send)
+                    .onSubmit {
+                        sendFeedback()
+                    }
+
+                Button {
+                    sendFeedback()
+                } label: {
+                    if notesViewModel.isSending {
+                        ProgressView()
+                            .tint(Theme.Colors.background)
+                            .frame(width: 44, height: 44)
+                    } else {
+                        Image(systemName: "arrow.up.circle.fill")
+                            .font(.title2)
+                            .foregroundColor(feedbackText.isEmpty ? Theme.Colors.textMuted : Theme.Colors.accent)
+                            .frame(width: 44, height: 44)
+                    }
+                }
+                .disabled(feedbackText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || notesViewModel.isSending)
+            }
+            .padding(Theme.Spacing.md)
+            .background(Theme.Colors.surfaceElevated)
+            .cornerRadius(Theme.Radius.medium)
+
+            Text("Feedback is sent directly to the developer")
+                .font(Theme.Typography.captionSmall)
+                .foregroundColor(Theme.Colors.textMuted)
+        }
+        .alert("Feedback Sent!", isPresented: Binding(
+            get: { notesViewModel.showSuccess },
+            set: { notesViewModel.showSuccess = $0 }
+        )) {
+            Button("OK") {
+                notesViewModel.showSuccess = false
+            }
+        } message: {
+            Text("Thanks! We'll review your feedback soon.")
+        }
+    }
+
+    private func sendFeedback() {
+        let trimmed = feedbackText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        notesViewModel.sendFeedback(trimmed)
+        feedbackText = ""
+        isFeedbackFocused = false
     }
 
     // MARK: - App Version Section
