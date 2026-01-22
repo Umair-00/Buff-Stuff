@@ -12,6 +12,8 @@ struct SettingsView: View {
     @Environment(NotesViewModel.self) var notesViewModel
     @Environment(WorkoutViewModel.self) var workoutViewModel
     @State private var healthKitManager = HealthKitManager.shared
+    @State private var cloudKitManager = CloudKitManager.shared
+    @State private var syncEngine = SyncEngine.shared
     @State private var showingAuthError: Bool = false
     @State private var authErrorMessage: String = ""
 
@@ -37,6 +39,9 @@ struct SettingsView: View {
                 VStack(spacing: Theme.Spacing.lg) {
                     // Header
                     header
+
+                    // iCloud Sync Section
+                    iCloudSyncSection
 
                     // HealthKit Section
                     healthKitSection
@@ -209,6 +214,170 @@ struct SettingsView: View {
             Spacer()
         }
         .padding(.top, Theme.Spacing.sm)
+    }
+
+    // MARK: - iCloud Sync Section
+    private var iCloudSyncSection: some View {
+        VStack(alignment: .leading, spacing: Theme.Spacing.md) {
+            // Section header
+            HStack {
+                Image(systemName: "icloud.fill")
+                    .foregroundColor(.blue)
+                Text("iCloud Sync")
+                    .font(Theme.Typography.headline)
+                    .foregroundColor(Theme.Colors.textPrimary)
+            }
+
+            VStack(spacing: Theme.Spacing.sm) {
+                // Sync toggle
+                iCloudToggleRow
+
+                // Status indicator
+                if cloudKitManager.iCloudSyncEnabled {
+                    iCloudStatusRow
+                }
+
+                // Sync Now button (when enabled)
+                if cloudKitManager.iCloudSyncEnabled && cloudKitManager.isAvailable {
+                    iCloudSyncButton
+                }
+
+                // Info text
+                iCloudInfoRow
+            }
+            .padding(Theme.Spacing.md)
+            .cardStyle()
+        }
+    }
+
+    private var iCloudToggleRow: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
+                Text("Sync Data")
+                    .font(Theme.Typography.body)
+                    .foregroundColor(Theme.Colors.textPrimary)
+
+                Text("Sync exercises and workouts across devices")
+                    .font(Theme.Typography.captionSmall)
+                    .foregroundColor(Theme.Colors.textMuted)
+            }
+
+            Spacer()
+
+            Toggle("", isOn: Binding(
+                get: { cloudKitManager.iCloudSyncEnabled },
+                set: { newValue in
+                    if newValue {
+                        enableiCloudSync()
+                    } else {
+                        cloudKitManager.iCloudSyncEnabled = false
+                    }
+                }
+            ))
+            .tint(Theme.Colors.accent)
+        }
+    }
+
+    private var iCloudStatusRow: some View {
+        HStack {
+            switch syncEngine.syncStatus {
+            case .idle:
+                if cloudKitManager.isAvailable {
+                    Label(syncEngine.statusMessage, systemImage: "checkmark.circle.fill")
+                        .font(Theme.Typography.caption)
+                        .foregroundColor(Theme.Colors.success)
+                } else {
+                    Label("iCloud unavailable", systemImage: "xmark.circle.fill")
+                        .font(Theme.Typography.caption)
+                        .foregroundColor(Theme.Colors.danger)
+                }
+            case .syncing:
+                HStack(spacing: Theme.Spacing.xs) {
+                    ProgressView()
+                        .scaleEffect(0.8)
+                    Text("Syncing...")
+                        .font(Theme.Typography.caption)
+                        .foregroundColor(Theme.Colors.textMuted)
+                }
+            case .error:
+                Label(syncEngine.lastError ?? "Sync error", systemImage: "exclamationmark.triangle.fill")
+                    .font(Theme.Typography.caption)
+                    .foregroundColor(Theme.Colors.warning)
+            case .offline:
+                Label("Offline - will sync when connected", systemImage: "wifi.slash")
+                    .font(Theme.Typography.caption)
+                    .foregroundColor(Theme.Colors.textMuted)
+            }
+
+            Spacer()
+
+            // Pending changes indicator
+            if syncEngine.hasPendingChanges {
+                Text("\(syncEngine.pendingChangeCount) pending")
+                    .font(Theme.Typography.captionSmall)
+                    .foregroundColor(Theme.Colors.warning)
+            }
+        }
+        .padding(.top, Theme.Spacing.xs)
+    }
+
+    private var iCloudSyncButton: some View {
+        Button {
+            Task {
+                await workoutViewModel.triggerSync()
+            }
+        } label: {
+            HStack {
+                Image(systemName: "arrow.triangle.2.circlepath")
+                Text("Sync Now")
+                Spacer()
+                if syncEngine.syncStatus == .syncing {
+                    ProgressView()
+                        .scaleEffect(0.8)
+                }
+            }
+            .font(Theme.Typography.body)
+            .foregroundColor(Theme.Colors.textPrimary)
+            .padding(Theme.Spacing.md)
+            .background(Theme.Colors.surfaceElevated)
+            .cornerRadius(Theme.Radius.medium)
+        }
+        .disabled(syncEngine.syncStatus == .syncing)
+        .padding(.top, Theme.Spacing.xs)
+    }
+
+    private var iCloudInfoRow: some View {
+        HStack {
+            Image(systemName: "info.circle")
+                .foregroundColor(Theme.Colors.textMuted)
+
+            Text("Uses your iCloud account - no sign-in required")
+                .font(Theme.Typography.captionSmall)
+                .foregroundColor(Theme.Colors.textMuted)
+
+            Spacer()
+        }
+        .padding(.top, Theme.Spacing.sm)
+    }
+
+    private func enableiCloudSync() {
+        Task {
+            await cloudKitManager.checkAccountStatus()
+            if cloudKitManager.isAvailable {
+                cloudKitManager.iCloudSyncEnabled = true
+                triggerHaptic(.success)
+
+                // Perform initial migration if needed
+                await workoutViewModel.performInitialMigrationIfNeeded()
+
+                // Setup subscription and sync
+                await syncEngine.setupSubscription()
+                await workoutViewModel.triggerSync()
+            } else {
+                authErrorMessage = "Please sign in to iCloud in Settings to enable sync"
+                showingAuthError = true
+            }
+        }
     }
 
     // MARK: - Data Backup Section

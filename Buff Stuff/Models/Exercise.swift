@@ -16,6 +16,10 @@ struct Exercise: Identifiable, Codable, Hashable {
     var defaultReps: Int
     var weightIncrement: Double
 
+    // Sync properties
+    var modifiedAt: Date
+    var isDeleted: Bool
+
     init(
         id: UUID = UUID(),
         name: String,
@@ -26,7 +30,9 @@ struct Exercise: Identifiable, Codable, Hashable {
         createdAt: Date = Date(),
         defaultWeight: Double = 45,
         defaultReps: Int = 10,
-        weightIncrement: Double = 5
+        weightIncrement: Double = 5,
+        modifiedAt: Date = Date(),
+        isDeleted: Bool = false
     ) {
         self.id = id
         self.name = name
@@ -38,6 +44,31 @@ struct Exercise: Identifiable, Codable, Hashable {
         self.defaultWeight = defaultWeight
         self.defaultReps = defaultReps
         self.weightIncrement = weightIncrement
+        self.modifiedAt = modifiedAt
+        self.isDeleted = isDeleted
+    }
+
+    // Custom decoder for backward compatibility with old data
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        name = try container.decode(String.self, forKey: .name)
+        muscleGroup = try container.decode(MuscleGroup.self, forKey: .muscleGroup)
+        equipment = try container.decode(Equipment.self, forKey: .equipment)
+        notes = try container.decode(String.self, forKey: .notes)
+        isFavorite = try container.decode(Bool.self, forKey: .isFavorite)
+        createdAt = try container.decode(Date.self, forKey: .createdAt)
+        defaultWeight = try container.decode(Double.self, forKey: .defaultWeight)
+        defaultReps = try container.decode(Int.self, forKey: .defaultReps)
+        weightIncrement = try container.decode(Double.self, forKey: .weightIncrement)
+        // Provide defaults for new sync properties
+        modifiedAt = try container.decodeIfPresent(Date.self, forKey: .modifiedAt) ?? createdAt
+        isDeleted = try container.decodeIfPresent(Bool.self, forKey: .isDeleted) ?? false
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id, name, muscleGroup, equipment, notes, isFavorite, createdAt
+        case defaultWeight, defaultReps, weightIncrement, modifiedAt, isDeleted
     }
 }
 

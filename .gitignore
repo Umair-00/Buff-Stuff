@@ -55,3 +55,6 @@ iOSInjectionProject/
 *.ipa
 *.dSYM.zip
 *.dSYM
+
+# Secrets (DO NOT COMMIT)
+Secrets.xcconfig

@@ -80,6 +80,7 @@ class HealthKitManager {
     // MARK: - Live Workout Session
 
     /// Start a live workout session (triggers watch tracking if paired)
+    /// Note: Live session with Dynamic Island indicator requires iOS 26+
     func startWorkoutSession() async throws {
         guard isAvailable else { throw HealthKitError.notAvailable }
 
@@ -87,11 +88,14 @@ class HealthKitManager {
         configuration.activityType = .functionalStrengthTraining
         configuration.locationType = .indoor
 
-        workoutSession = try HKWorkoutSession(healthStore: healthStore, configuration: configuration)
-        workoutBuilder = workoutSession?.associatedWorkoutBuilder()
+        if #available(iOS 26.0, *) {
+            workoutSession = try HKWorkoutSession(healthStore: healthStore, configuration: configuration)
+            workoutBuilder = workoutSession?.associatedWorkoutBuilder()
 
-        workoutSession?.startActivity(with: Date())
-        try await workoutBuilder?.beginCollection(at: Date())
+            workoutSession?.startActivity(with: Date())
+            try await workoutBuilder?.beginCollection(at: Date())
+        }
+        // On iOS 17-25, live session indicator is not available
     }
 
     /// End the live workout session

@@ -9,8 +9,10 @@ class NotesViewModel {
     var isSending: Bool = false
     var showSuccess: Bool = false
 
-    // Discord webhook for feedback notifications
-    private let discordWebhookURL = "https://discord.com/api/webhooks/1462706107586838660/V9E7S-PIwaIjrMukXKhZn296LiE8pIhTOGSvL7g630cxnxg1ocJHIL_hrg2Rf4iEvlvB"
+    // Discord webhook URL loaded from Info.plist (set via Secrets.xcconfig)
+    private var discordWebhookURL: String? {
+        Bundle.main.infoDictionary?["DiscordWebhookURL"] as? String
+    }
 
     // MARK: - Send Feedback
     func sendFeedback(_ content: String) {
@@ -28,7 +30,12 @@ class NotesViewModel {
 
     // MARK: - Discord Notification
     private func sendToDiscord(_ content: String) async {
-        guard let url = URL(string: discordWebhookURL) else { return }
+        guard let webhookURLString = discordWebhookURL,
+              !webhookURLString.isEmpty,
+              let url = URL(string: webhookURLString) else {
+            print("⚠️ Discord webhook URL not configured. Set DISCORD_WEBHOOK_URL in Secrets.xcconfig")
+            return
+        }
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"

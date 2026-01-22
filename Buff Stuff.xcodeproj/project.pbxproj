@@ -24,6 +24,7 @@
 		4524A9BF2F1ED2090047D9E5 /* Buff StuffTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Buff StuffTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		4524A9D02F1ED3A00047D9E5 /* CLAUDE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = CLAUDE.md; sourceTree = "<group>"; };
 		452B552A2F1711BF001D7704 /* Buff Stuff.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Buff Stuff.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		AABBCCDD0001 /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -34,10 +35,23 @@
 		};
 		452B552C2F1711BF001D7704 /* Buff Stuff */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				AABBCCDD0002 /* PBXFileSystemSynchronizedBuildFileExceptionSet */,
+			);
 			path = "Buff Stuff";
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		AABBCCDD0002 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 452B55292F1711BF001D7704 /* Buff Stuff */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		4524A9BC2F1ED2090047D9E5 /* Frameworks */ = {
@@ -61,6 +75,7 @@
 			isa = PBXGroup;
 			children = (
 				4524A9D02F1ED3A00047D9E5 /* CLAUDE.md */,
+				AABBCCDD0001 /* Secrets.xcconfig */,
 				452B552C2F1711BF001D7704 /* Buff Stuff */,
 				4524A9C02F1ED2090047D9E5 /* Buff StuffTests */,
 				452B552B2F1711BF001D7704 /* Products */,
@@ -251,6 +266,7 @@
 		};
 		452B55332F1711C0001D7704 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = AABBCCDD0001 /* Secrets.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -301,7 +317,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -314,6 +330,7 @@
 		};
 		452B55342F1711C0001D7704 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = AABBCCDD0001 /* Secrets.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -358,7 +375,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
@@ -379,7 +396,8 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 2NJH63B93Q;
 				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "Buff Stuff/Info.plist";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "Buff Stuff reads your workout data to display activity summaries.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Buff Stuff saves your completed workouts to Apple Health to track your fitness progress.";
@@ -417,7 +435,8 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 2NJH63B93Q;
 				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "Buff Stuff/Info.plist";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "Buff Stuff reads your workout data to display activity summaries.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Buff Stuff saves your completed workouts to Apple Health to track your fitness progress.";

@@ -11,6 +11,7 @@ struct ContentView: View {
     @State private var viewModel = WorkoutViewModel()
     @State private var notesViewModel = NotesViewModel()
     @State private var selectedTab: Tab = .today
+    @Environment(\.scenePhase) private var scenePhase
 
     enum Tab {
         case today, exercises, history, settings
@@ -59,6 +60,23 @@ struct ContentView: View {
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
                 .presentationBackground(Theme.Colors.surface)
+        }
+        .task {
+            // Initial sync on launch
+            await viewModel.triggerSync()
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .active {
+                // Sync when app returns to foreground
+                Task {
+                    await viewModel.triggerSync()
+                }
+            } else if newPhase == .background {
+                // Push any pending changes when going to background
+                Task {
+                    await SyncEngine.shared.syncImmediately()
+                }
+            }
         }
     }
 }

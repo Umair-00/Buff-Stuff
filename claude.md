@@ -33,18 +33,22 @@ Buff Stuff/
 ├── Models/
 │   ├── Workout.swift            # Workout session with ExerciseEntry
 │   ├── Exercise.swift           # Exercise definition + MuscleGroup/Equipment enums
-│   └── WorkoutSet.swift         # Individual set (weight × reps)
+│   ├── WorkoutSet.swift         # Individual set (weight × reps)
+│   └── SyncState.swift          # CloudKit sync metadata and state tracking
 ├── ViewModels/
 │   ├── WorkoutViewModel.swift   # Workouts, exercises, active session, suggestions
-│   └── NotesViewModel.swift     # Feedback form state, Discord webhook
+│   └── NotesViewModel.swift     # Feedback state, Discord webhook (used in SettingsView)
 ├── Services/
-│   └── HealthKitManager.swift   # HealthKit sync, live workout sessions
+│   ├── HealthKitManager.swift   # HealthKit sync, live workout sessions
+│   ├── CloudKitManager.swift    # CloudKit operations (CRUD, zones, subscriptions)
+│   └── SyncEngine.swift         # Sync orchestration, conflict resolution
+├── Extensions/
+│   └── CKRecord+Models.swift    # Syncable protocol, CKRecord conversions
 └── Views/
     ├── TodayView.swift          # Active workout display
     ├── HistoryView.swift        # Workout history + analytics
     ├── ExerciseLibraryView.swift # Browse/manage exercises
-    ├── NotesView.swift          # Feedback form (sends to Discord)
-    ├── SettingsView.swift       # App settings, HealthKit toggle, data export
+    ├── SettingsView.swift       # App settings, HealthKit/iCloud toggles, data export
     ├── QuickLogSheet.swift      # Fast set logging modal + suggestions
     ├── ExercisePickerSheet.swift # Exercise selection
     └── NewExerciseSheet.swift   # Create exercise form
@@ -245,12 +249,12 @@ Buff StuffTests/
 
 ## UI Structure
 
-**Tab Navigation:** 5 tabs with center FAB button
+**Tab Navigation:** 4 tabs with center FAB button
 1. Today - Active workout logging
 2. Exercises - Library management
 3. (center) FAB - Quick add exercise
 4. History - Past workouts + analytics
-5. Feedback - Send bug reports/feature requests (via Discord)
+5. Settings - HealthKit, data backup, feedback
 
 **Quick Log Flow:**
 1. Tap FAB (+) to open exercise picker
@@ -261,13 +265,14 @@ Buff StuffTests/
 
 ## Important Notes
 
-- App is fully offline (data stored locally, no backend)
-- Feedback form sends to Discord webhook (only outbound network call)
+- Data stored locally with optional iCloud sync
+- Feedback form in Settings sends to Discord webhook
 - Uses iOS 17+ APIs (@Observable)
 - Forces dark color scheme
 - Warmup sets excluded from volume calculations
 - Workouts auto-name from muscle groups if no custom name
 - HealthKit sync is opt-in (toggle in Settings)
+- iCloud sync is opt-in (toggle in Settings)
 - Live workout indicator requires HealthKit enabled
 - Data export/import uses JSON format with schema versioning
 
@@ -297,5 +302,69 @@ Buff StuffTests/
 | **WidgetKit** | Home/Lock screen widgets for quick start, streaks, today's stats |
 | **App Intents + Siri** | "Hey Siri, log bench press 185 for 8" hands-free |
 | **Live Activities** | Enhanced Dynamic Island with current exercise, set count, rest timer |
-| **CloudKit** | iCloud sync across devices, backup |
 | **Spotlight** | Search exercises from home screen |
+
+---
+
+## CloudKit Integration
+
+**Status:** Implemented. iCloud sync available in Settings.
+
+### Architecture
+- **Storage:** CloudKit Private Database (user's iCloud, free, unlimited)
+- **Sync Model:** Exercise = individual records, Workout = single record with JSON `entriesJSON`
+- **Conflict Resolution:** Last-writer-wins using `modifiedAt` timestamps
+- **Soft Deletes:** `isDeleted` flag to prevent resurrection
+
+### New Files
+```
+Buff Stuff/
+├── Models/
+│   └── SyncState.swift           # SyncState, SyncMetadata, PendingChange structs
+├── Extensions/
+│   └── CKRecord+Models.swift     # Syncable protocol, CKRecord conversions
+└── Services/
+    ├── CloudKitManager.swift     # Core CloudKit operations (CRUD, zones, subscriptions)
+    └── SyncEngine.swift          # Sync orchestration, conflict resolution
+```
+
+### Model Changes
+- `Exercise` and `Workout` now have `modifiedAt: Date` and `isDeleted: Bool` properties
+- Both conform to `Syncable` protocol with `toCKRecord()` and `from(record:)` methods
+
+### Sync Triggers
+| Event | Action |
+|-------|--------|
+| App launch/foreground | Pull changes from CloudKit |
+| Exercise/Workout saved | Push to CloudKit |
+| Active workout set logged | Debounced push (30s) |
+| App enters background | Push pending changes immediately |
+
+### UserDefaults Keys (CloudKit)
+```swift
+buff_stuff_cloudkit_enabled       // Bool - user toggle
+buff_stuff_cloudkit_migrated      // Bool - initial upload done
+buff_stuff_sync_metadata          // Data - encoded SyncMetadata
+buff_stuff_pending_sync_changes   // Data - offline queue
+buff_stuff_last_sync_date         // Date
+buff_stuff_server_change_token    // Data - CloudKit change token
+```
+
+### Settings UI
+iCloud Sync section in SettingsView includes:
+- Sync toggle (enables/disables CloudKit sync)
+- Status indicator (syncing, synced, error, offline)
+- "Sync Now" button for manual sync
+- Pending changes count
+
+### Xcode Capabilities (in entitlements)
+- CloudKit (`com.apple.developer.icloud-services`)
+- iCloud Container: `iCloud.com.buffstuff.Buff-Stuff`
+- Push Notifications (`aps-environment`)
+
+### Testing Checklist
+1. Enable sync on Device A, verify data uploads
+2. Install on Device B, enable sync, verify data appears
+3. Log workout on A, verify appears on B
+4. Airplane mode on A, log workout, reconnect, verify syncs
+5. Edit same exercise on both devices, verify conflict resolved

@@ -10,6 +10,10 @@ struct Workout: Identifiable, Codable, Hashable {
     var completedAt: Date?
     var notes: String
 
+    // Sync properties
+    var modifiedAt: Date
+    var isDeleted: Bool
+
     var isActive: Bool {
         completedAt == nil
     }
@@ -48,7 +52,9 @@ struct Workout: Identifiable, Codable, Hashable {
         entries: [ExerciseEntry] = [],
         startedAt: Date = Date(),
         completedAt: Date? = nil,
-        notes: String = ""
+        notes: String = "",
+        modifiedAt: Date = Date(),
+        isDeleted: Bool = false
     ) {
         self.id = id
         self.name = name
@@ -56,6 +62,26 @@ struct Workout: Identifiable, Codable, Hashable {
         self.startedAt = startedAt
         self.completedAt = completedAt
         self.notes = notes
+        self.modifiedAt = modifiedAt
+        self.isDeleted = isDeleted
+    }
+
+    // Custom decoder for backward compatibility with old data
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        name = try container.decode(String.self, forKey: .name)
+        entries = try container.decode([ExerciseEntry].self, forKey: .entries)
+        startedAt = try container.decode(Date.self, forKey: .startedAt)
+        completedAt = try container.decodeIfPresent(Date.self, forKey: .completedAt)
+        notes = try container.decode(String.self, forKey: .notes)
+        // Provide defaults for new sync properties
+        modifiedAt = try container.decodeIfPresent(Date.self, forKey: .modifiedAt) ?? startedAt
+        isDeleted = try container.decodeIfPresent(Bool.self, forKey: .isDeleted) ?? false
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id, name, entries, startedAt, completedAt, notes, modifiedAt, isDeleted
     }
 
     // Generate name from exercises if not set

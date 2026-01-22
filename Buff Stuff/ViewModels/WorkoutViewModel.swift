@@ -120,15 +120,118 @@ class WorkoutViewModel {
     private let schemaVersionKey = "buff_stuff_schema_version"
     private let currentSchemaVersion = 1
 
+    // MARK: - Sync Engine
+    private let syncEngine = SyncEngine.shared
+
     // MARK: - Initialization
     init() {
         loadData()
+        setupSyncCallbacks()
+        recoverExercisesFromWorkoutHistory()
 
         // If no exercises, add samples
         if exercises.isEmpty {
             exercises = Exercise.samples
             saveExercises()
         }
+    }
+
+    /// Recover exercises from workout history that may be missing from exercises array
+    private func recoverExercisesFromWorkoutHistory() {
+        let existingIds = Set(exercises.map { $0.id })
+        var recoveredExercises: [Exercise] = []
+
+        for workout in workouts {
+            for entry in workout.entries {
+                if !existingIds.contains(entry.exercise.id) &&
+                   !recoveredExercises.contains(where: { $0.id == entry.exercise.id }) {
+                    recoveredExercises.append(entry.exercise)
+                }
+            }
+        }
+
+        if !recoveredExercises.isEmpty {
+            exercises.append(contentsOf: recoveredExercises)
+            saveExercises()
+            print("📦 Recovered \(recoveredExercises.count) exercises from workout history")
+        }
+    }
+
+    // MARK: - Sync Setup
+
+    private func setupSyncCallbacks() {
+        syncEngine.onExercisesReceived = { [weak self] remoteExercises in
+            self?.applyRemoteExercises(remoteExercises)
+        }
+        syncEngine.onWorkoutsReceived = { [weak self] remoteWorkouts in
+            self?.applyRemoteWorkouts(remoteWorkouts)
+        }
+        syncEngine.onExerciseDeleted = { [weak self] id in
+            self?.handleRemoteExerciseDeletion(id)
+        }
+        syncEngine.onWorkoutDeleted = { [weak self] id in
+            self?.handleRemoteWorkoutDeletion(id)
+        }
+    }
+
+    /// Trigger sync (called from ContentView on launch/foreground)
+    func triggerSync() async {
+        await syncEngine.sync()
+    }
+
+    /// Perform initial migration if needed
+    func performInitialMigrationIfNeeded() async {
+        guard CloudKitManager.shared.iCloudSyncEnabled else { return }
+        guard !CloudKitManager.shared.hasMigrated else { return }
+
+        try? await syncEngine.performInitialMigration(exercises: exercises, workouts: workouts)
+    }
+
+    // MARK: - Remote Change Handlers
+
+    private func applyRemoteExercises(_ remoteExercises: [Exercise]) {
+        for remote in remoteExercises {
+            if let index = exercises.firstIndex(where: { $0.id == remote.id }) {
+                // Conflict resolution: use newer version
+                let local = exercises[index]
+                let resolved = syncEngine.resolveConflict(local: local, server: remote)
+                exercises[index] = resolved
+            } else {
+                // New exercise from remote
+                exercises.append(remote)
+            }
+        }
+        saveExercises(sync: false) // Don't re-sync changes we just received
+    }
+
+    private func applyRemoteWorkouts(_ remoteWorkouts: [Workout]) {
+        for remote in remoteWorkouts {
+            if let index = workouts.firstIndex(where: { $0.id == remote.id }) {
+                // Conflict resolution: use newer version
+                // But never overwrite active workout with remote
+                if activeWorkout?.id == remote.id {
+                    continue // Local active workout takes precedence
+                }
+                let local = workouts[index]
+                let resolved = syncEngine.resolveConflict(local: local, server: remote)
+                workouts[index] = resolved
+            } else {
+                // New workout from remote
+                workouts.append(remote)
+            }
+        }
+        workouts.sort { $0.startedAt > $1.startedAt }
+        saveWorkouts(sync: false) // Don't re-sync changes we just received
+    }
+
+    private func handleRemoteExerciseDeletion(_ id: UUID) {
+        exercises.removeAll { $0.id == id }
+        saveExercises(sync: false)
+    }
+
+    private func handleRemoteWorkoutDeletion(_ id: UUID) {
+        workouts.removeAll { $0.id == id }
+        saveWorkouts(sync: false)
     }
 
     // MARK: - Data Persistence
@@ -177,22 +280,42 @@ class WorkoutViewModel {
         print("📦 Backed up corrupted data to: \(backupKey)")
     }
 
-    private func saveExercises() {
+    private func saveExercises(sync: Bool = true) {
         if let encoded = try? JSONEncoder().encode(exercises) {
             UserDefaults.standard.set(encoded, forKey: exercisesKey)
         }
-    }
 
-    private func saveWorkouts() {
-        if let encoded = try? JSONEncoder().encode(workouts) {
-            UserDefaults.standard.set(encoded, forKey: workoutsKey)
+        // Queue all exercises for sync if enabled
+        if sync && CloudKitManager.shared.iCloudSyncEnabled {
+            Task {
+                try? await syncEngine.pushExercises(exercises)
+            }
         }
     }
 
-    private func saveActiveWorkout() {
+    private func saveWorkouts(sync: Bool = true) {
+        if let encoded = try? JSONEncoder().encode(workouts) {
+            UserDefaults.standard.set(encoded, forKey: workoutsKey)
+        }
+
+        // Queue completed workouts for sync if enabled
+        if sync && CloudKitManager.shared.iCloudSyncEnabled {
+            let completedWorkouts = workouts.filter { $0.completedAt != nil }
+            Task {
+                try? await syncEngine.pushWorkouts(completedWorkouts)
+            }
+        }
+    }
+
+    private func saveActiveWorkout(sync: Bool = true) {
         if let workout = activeWorkout,
            let encoded = try? JSONEncoder().encode(workout) {
             UserDefaults.standard.set(encoded, forKey: activeWorkoutKey)
+
+            // Debounced sync for active workout
+            if sync && CloudKitManager.shared.iCloudSyncEnabled {
+                syncEngine.syncWithDebounce()
+            }
         } else {
             UserDefaults.standard.removeObject(forKey: activeWorkoutKey)
         }
@@ -249,6 +372,7 @@ class WorkoutViewModel {
     func finishWorkout() {
         guard var workout = activeWorkout else { return }
         workout.completedAt = Date()
+        workout.modifiedAt = Date()
         workouts.insert(workout, at: 0)
         activeWorkout = nil
         saveWorkouts()
@@ -280,6 +404,14 @@ class WorkoutViewModel {
     }
 
     func deleteWorkout(_ workout: Workout) {
+        // Soft delete for sync
+        if CloudKitManager.shared.iCloudSyncEnabled {
+            if let index = workouts.firstIndex(where: { $0.id == workout.id }) {
+                workouts[index].isDeleted = true
+                workouts[index].modifiedAt = Date()
+                syncEngine.queueDeletion(recordId: workout.id, recordType: CloudKitRecordType.workout.rawValue)
+            }
+        }
         workouts.removeAll { $0.id == workout.id }
         saveWorkouts()
         triggerHaptic(.light)
@@ -287,19 +419,31 @@ class WorkoutViewModel {
 
     // MARK: - Exercise Management
     func addExercise(_ exercise: Exercise) {
-        exercises.append(exercise)
+        var newExercise = exercise
+        newExercise.modifiedAt = Date()
+        exercises.append(newExercise)
         saveExercises()
         triggerHaptic(.light)
     }
 
     func updateExercise(_ exercise: Exercise) {
         if let index = exercises.firstIndex(where: { $0.id == exercise.id }) {
-            exercises[index] = exercise
+            var updated = exercise
+            updated.modifiedAt = Date()
+            exercises[index] = updated
             saveExercises()
         }
     }
 
     func deleteExercise(_ exercise: Exercise) {
+        // Soft delete for sync
+        if CloudKitManager.shared.iCloudSyncEnabled {
+            if let index = exercises.firstIndex(where: { $0.id == exercise.id }) {
+                exercises[index].isDeleted = true
+                exercises[index].modifiedAt = Date()
+                syncEngine.queueDeletion(recordId: exercise.id, recordType: CloudKitRecordType.exercise.rawValue)
+            }
+        }
         exercises.removeAll { $0.id == exercise.id }
         saveExercises()
     }
@@ -307,6 +451,7 @@ class WorkoutViewModel {
     func toggleFavorite(_ exercise: Exercise) {
         if let index = exercises.firstIndex(where: { $0.id == exercise.id }) {
             exercises[index].isFavorite.toggle()
+            exercises[index].modifiedAt = Date()
             saveExercises()
             triggerHaptic(.light)
         }
