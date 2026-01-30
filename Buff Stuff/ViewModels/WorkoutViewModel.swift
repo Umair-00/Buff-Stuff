@@ -32,6 +32,16 @@ enum ProgressTimePeriod: String, CaseIterable, Identifiable {
         guard let days = days else { return nil }
         return Calendar.current.date(byAdding: .day, value: -days, to: Date())
     }
+
+    /// Minimum sessions required to calculate progress status for this time period
+    var minimumSessionsForProgress: Int {
+        switch self {
+        case .week: return 2        // 7D: compare 1 vs 1
+        case .month: return 3       // 30D: compare 1 vs avg of 2
+        case .threeMonths: return 4 // 90D: compare avg 2 vs avg 2
+        case .allTime: return 4     // ALL: compare avg 2 vs avg 2
+        }
+    }
 }
 
 // MARK: - Progress Status
@@ -39,7 +49,7 @@ enum ProgressStatus {
     case progressing  // ↑ >2% volume increase
     case plateau      // → -2% to +2% change
     case declining    // ↓ >2% volume decrease
-    case newExercise  // ★ <4 data points to compare
+    case newExercise  // ★ Not enough data points for time period
 
     var icon: String {
         switch self {
@@ -122,6 +132,9 @@ class WorkoutViewModel {
 
     // MARK: - Sync Engine
     private let syncEngine = SyncEngine.shared
+
+    // MARK: - Watch Connectivity
+    private let watchManager = WatchConnectivityManager.shared
 
     // MARK: - Initialization
     init() {
@@ -366,6 +379,11 @@ class WorkoutViewModel {
             }
         }
 
+        // Start watch workout for active calorie tracking
+        if watchManager.isReachable {
+            watchManager.startWatchWorkout()
+        }
+
         triggerHaptic(.medium)
     }
 
@@ -384,6 +402,11 @@ class WorkoutViewModel {
             await saveWorkoutToHealthKit(workout)
         }
 
+        // End watch workout session
+        if watchManager.watchWorkoutActive {
+            watchManager.endWatchWorkout()
+        }
+
         triggerHaptic(.success)
     }
 
@@ -400,6 +423,11 @@ class WorkoutViewModel {
         // End HealthKit session if discarding
         Task {
             try? await HealthKitManager.shared.endWorkoutSession()
+        }
+
+        // Cancel watch workout session
+        if watchManager.watchWorkoutActive {
+            watchManager.cancelWatchWorkout()
         }
     }
 
@@ -659,8 +687,9 @@ class WorkoutViewModel {
             // Get most recent data point for display
             let mostRecent = dataPoints.last!
 
-            // Need at least 4 data points to compare baseline vs recent
-            if dataPoints.count < 4 {
+            // Use adaptive threshold based on time period
+            let minSessions = period.minimumSessionsForProgress
+            if dataPoints.count < minSessions {
                 let avgVolume = dataPoints.map { $0.volume }.reduce(0, +) / Double(dataPoints.count)
                 return ExerciseProgress(
                     id: exercise.id,
@@ -675,13 +704,29 @@ class WorkoutViewModel {
                 )
             }
 
-            // Split data: recent 2 sessions vs older sessions (2-4 before that)
+            // Split data based on time period's minimum sessions
             let sortedByDate = dataPoints.sorted { $0.date > $1.date }
-            let recentSessions = Array(sortedByDate.prefix(2))
-            let olderSessions = Array(sortedByDate.dropFirst(2).prefix(2))
 
-            let recentAvg = recentSessions.map { $0.volume }.reduce(0, +) / Double(recentSessions.count)
-            let baselineAvg = olderSessions.map { $0.volume }.reduce(0, +) / Double(olderSessions.count)
+            let recentAvg: Double
+            let baselineAvg: Double
+
+            switch minSessions {
+            case 2:
+                // 7D: Compare 1 vs 1
+                recentAvg = sortedByDate[0].volume
+                baselineAvg = sortedByDate[1].volume
+            case 3:
+                // 30D: Compare 1 vs average of 2
+                recentAvg = sortedByDate[0].volume
+                let baseline = Array(sortedByDate.dropFirst().prefix(2))
+                baselineAvg = baseline.map { $0.volume }.reduce(0, +) / Double(baseline.count)
+            default:
+                // 90D/ALL: Compare average of 2 vs average of 2 (original behavior)
+                let recentSessions = Array(sortedByDate.prefix(2))
+                let olderSessions = Array(sortedByDate.dropFirst(2).prefix(2))
+                recentAvg = recentSessions.map { $0.volume }.reduce(0, +) / Double(recentSessions.count)
+                baselineAvg = olderSessions.map { $0.volume }.reduce(0, +) / Double(olderSessions.count)
+            }
 
             // Calculate percent change
             let percentChange: Double

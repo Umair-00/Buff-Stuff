@@ -38,16 +38,16 @@ final class ProgressCalculationTests: XCTestCase {
 
     // MARK: - Progress Status Tests
 
-    func testProgress_LessThan4Sessions_ReturnsNewExercise() {
-        // Given: Only 3 sessions
+    func testProgress_90Day_LessThan4Sessions_ReturnsNewExercise() {
+        // Given: Only 3 sessions (90D/ALL requires 4)
         viewModel.workouts.append(createWorkout(weight: 135, reps: 5, daysAgo: 21))
         viewModel.workouts.append(createWorkout(weight: 140, reps: 5, daysAgo: 14))
         viewModel.workouts.append(createWorkout(weight: 145, reps: 5, daysAgo: 7))
 
-        // When: Calculate progress
+        // When: Calculate progress for 90D period
         let progress = viewModel.allExerciseProgress(in: .threeMonths)
 
-        // Then: Status is new exercise
+        // Then: Status is new exercise (need 4 for 90D)
         let exerciseProgress = progress.first { $0.id == testExercise.id }
         XCTAssertNotNil(exerciseProgress)
         XCTAssertEqual(exerciseProgress?.status, .newExercise)
@@ -158,6 +158,104 @@ final class ProgressCalculationTests: XCTestCase {
 
         // Then: No data points (warmups don't count)
         XCTAssertTrue(dataPoints.isEmpty)
+    }
+
+    // MARK: - Adaptive Threshold Tests
+
+    func testProgress_7Day_With2Sessions_ShowsStatus() {
+        // Given: 2 sessions within the past week (meets 7D threshold of 2)
+        // Session 1 (older): 135×5 = 675
+        // Session 2 (recent): 145×5 = 725
+        // Change: (725 - 675) / 675 = 7.4% → progressing
+        viewModel.workouts.append(createWorkout(weight: 135, reps: 5, daysAgo: 5))
+        viewModel.workouts.append(createWorkout(weight: 145, reps: 5, daysAgo: 2))
+
+        // When: Calculate progress for 7D period
+        let progress = viewModel.allExerciseProgress(in: .week)
+
+        // Then: Should show progress status (not newExercise)
+        let exerciseProgress = progress.first { $0.id == testExercise.id }
+        XCTAssertNotNil(exerciseProgress)
+        XCTAssertNotEqual(exerciseProgress?.status, .newExercise)
+        XCTAssertEqual(exerciseProgress?.status, .progressing)
+    }
+
+    func testProgress_7Day_With1Session_ShowsNewExercise() {
+        // Given: Only 1 session within the past week (below 7D threshold of 2)
+        viewModel.workouts.append(createWorkout(weight: 145, reps: 5, daysAgo: 2))
+
+        // When: Calculate progress for 7D period
+        let progress = viewModel.allExerciseProgress(in: .week)
+
+        // Then: Should show newExercise status
+        let exerciseProgress = progress.first { $0.id == testExercise.id }
+        XCTAssertNotNil(exerciseProgress)
+        XCTAssertEqual(exerciseProgress?.status, .newExercise)
+    }
+
+    func testProgress_30Day_With3Sessions_ShowsStatus() {
+        // Given: 3 sessions within the past month (meets 30D threshold of 3)
+        // Baseline avg: (675 + 700) / 2 = 687.5 (sessions 2 and 3)
+        // Recent: 725 (session 1, most recent)
+        // Change: (725 - 687.5) / 687.5 = 5.5% → progressing
+        viewModel.workouts.append(createWorkout(weight: 135, reps: 5, daysAgo: 25))
+        viewModel.workouts.append(createWorkout(weight: 140, reps: 5, daysAgo: 18))
+        viewModel.workouts.append(createWorkout(weight: 145, reps: 5, daysAgo: 10))
+
+        // When: Calculate progress for 30D period
+        let progress = viewModel.allExerciseProgress(in: .month)
+
+        // Then: Should show progress status (not newExercise)
+        let exerciseProgress = progress.first { $0.id == testExercise.id }
+        XCTAssertNotNil(exerciseProgress)
+        XCTAssertNotEqual(exerciseProgress?.status, .newExercise)
+        XCTAssertEqual(exerciseProgress?.status, .progressing)
+    }
+
+    func testProgress_30Day_With2Sessions_ShowsNewExercise() {
+        // Given: Only 2 sessions within the past month (below 30D threshold of 3)
+        viewModel.workouts.append(createWorkout(weight: 140, reps: 5, daysAgo: 18))
+        viewModel.workouts.append(createWorkout(weight: 145, reps: 5, daysAgo: 10))
+
+        // When: Calculate progress for 30D period
+        let progress = viewModel.allExerciseProgress(in: .month)
+
+        // Then: Should show newExercise status
+        let exerciseProgress = progress.first { $0.id == testExercise.id }
+        XCTAssertNotNil(exerciseProgress)
+        XCTAssertEqual(exerciseProgress?.status, .newExercise)
+    }
+
+    func testProgress_90Day_With3Sessions_ShowsNewExercise() {
+        // Given: 3 sessions (below 90D threshold of 4)
+        viewModel.workouts.append(createWorkout(weight: 135, reps: 5, daysAgo: 60))
+        viewModel.workouts.append(createWorkout(weight: 140, reps: 5, daysAgo: 45))
+        viewModel.workouts.append(createWorkout(weight: 145, reps: 5, daysAgo: 30))
+
+        // When: Calculate progress for 90D period
+        let progress = viewModel.allExerciseProgress(in: .threeMonths)
+
+        // Then: Should show newExercise status
+        let exerciseProgress = progress.first { $0.id == testExercise.id }
+        XCTAssertNotNil(exerciseProgress)
+        XCTAssertEqual(exerciseProgress?.status, .newExercise)
+    }
+
+    func testProgress_90Day_With4Sessions_ShowsStatus() {
+        // Given: 4 sessions (meets 90D threshold of 4)
+        viewModel.workouts.append(createWorkout(weight: 135, reps: 5, daysAgo: 75))
+        viewModel.workouts.append(createWorkout(weight: 140, reps: 5, daysAgo: 60))
+        viewModel.workouts.append(createWorkout(weight: 150, reps: 5, daysAgo: 45))
+        viewModel.workouts.append(createWorkout(weight: 155, reps: 5, daysAgo: 30))
+
+        // When: Calculate progress for 90D period
+        let progress = viewModel.allExerciseProgress(in: .threeMonths)
+
+        // Then: Should show progress status (not newExercise)
+        let exerciseProgress = progress.first { $0.id == testExercise.id }
+        XCTAssertNotNil(exerciseProgress)
+        XCTAssertNotEqual(exerciseProgress?.status, .newExercise)
+        XCTAssertEqual(exerciseProgress?.status, .progressing)
     }
 
     // MARK: - Time Period Tests
