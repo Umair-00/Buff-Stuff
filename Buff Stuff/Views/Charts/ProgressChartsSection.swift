@@ -10,6 +10,7 @@ import SwiftUI
 struct ProgressChartsSection: View {
     @Environment(WorkoutViewModel.self) var viewModel
     @Binding var selectedPeriod: ProgressTimePeriod
+    var muscleGroupFilter: Set<MuscleGroup> = []
     @State private var isExpanded: Bool = true
 
     var body: some View {
@@ -20,7 +21,7 @@ struct ProgressChartsSection: View {
             // Collapsible Charts
             if isExpanded {
                 // Progressive Overload Overview
-                ExerciseProgressOverview(period: selectedPeriod)
+                ExerciseProgressOverview(period: selectedPeriod, muscleGroupFilter: muscleGroupFilter)
                     .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }

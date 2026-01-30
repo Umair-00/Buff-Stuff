@@ -11,6 +11,9 @@ struct HistoryView: View {
     @Environment(WorkoutViewModel.self) var viewModel
     @State private var selectedWorkout: Workout?
     @State private var selectedPeriod: ProgressTimePeriod = .month
+    @State private var expandedSections: Set<String> = ["TODAY", "YESTERDAY"]
+    @State private var selectedMuscleGroups: Set<MuscleGroup> = []
+    @State private var showingFilterSheet: Bool = false
 
     var body: some View {
         ZStack {
@@ -26,7 +29,7 @@ struct HistoryView: View {
                         emptyState
                     } else {
                         // Progress charts section
-                        ProgressChartsSection(selectedPeriod: $selectedPeriod)
+                        ProgressChartsSection(selectedPeriod: $selectedPeriod, muscleGroupFilter: selectedMuscleGroups)
 
                         // Stats summary (now filtered by period)
                         statsSummary
@@ -46,6 +49,12 @@ struct HistoryView: View {
                 .presentationDragIndicator(.visible)
                 .presentationBackground(Theme.Colors.surface)
         }
+        .sheet(isPresented: $showingFilterSheet) {
+            MuscleGroupFilterSheet(selectedMuscleGroups: $selectedMuscleGroups)
+                .presentationDetents([.medium])
+                .presentationDragIndicator(.visible)
+                .presentationBackground(Theme.Colors.surface)
+        }
     }
 
     // MARK: - Header
@@ -59,25 +68,24 @@ struct HistoryView: View {
 
                 Spacer()
 
-//                #if DEBUG
-//                Menu {
-//                    Button {
-//                        viewModel.generateSampleData()
-//                    } label: {
-//                        Label("Generate Sample Data", systemImage: "wand.and.stars")
-//                    }
-//
-//                    Button(role: .destructive) {
-//                        viewModel.clearAllData()
-//                    } label: {
-//                        Label("Clear All Data", systemImage: "trash")
-//                    }
-//                } label: {
-//                    Image(systemName: "ladybug.fill")
-//                        .font(.caption)
-//                        .foregroundColor(Theme.Colors.textMuted)
-//                }
-//                #endif
+                // Filter button
+                Button {
+                    showingFilterSheet = true
+                    let generator = UIImpactFeedbackGenerator(style: .light)
+                    generator.impactOccurred()
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: isFilterActive ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
+                            .font(.body)
+                            .foregroundColor(isFilterActive ? Theme.Colors.accent : Theme.Colors.textMuted)
+
+                        if isFilterActive {
+                            Text("\(selectedMuscleGroups.count)")
+                                .font(Theme.Typography.captionSmall)
+                                .foregroundColor(Theme.Colors.accent)
+                        }
+                    }
+                }
             }
 
             Text("HISTORY")
@@ -86,6 +94,10 @@ struct HistoryView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.top, Theme.Spacing.lg)
+    }
+
+    private var isFilterActive: Bool {
+        !selectedMuscleGroups.isEmpty
     }
 
     // MARK: - Empty State
@@ -181,33 +193,72 @@ struct HistoryView: View {
         LazyVStack(spacing: Theme.Spacing.sm) {
             ForEach(groupedWorkouts, id: \.0) { section, workouts in
                 VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
-                    Text(section)
-                        .font(Theme.Typography.caption)
-                        .foregroundColor(Theme.Colors.textMuted)
-                        .tracking(1)
-                        .padding(.top, Theme.Spacing.md)
+                    // Collapsible section header
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            if expandedSections.contains(section) {
+                                expandedSections.remove(section)
+                            } else {
+                                expandedSections.insert(section)
+                            }
+                        }
+                        let generator = UIImpactFeedbackGenerator(style: .light)
+                        generator.impactOccurred()
+                    } label: {
+                        HStack {
+                            Text(section)
+                                .font(Theme.Typography.caption)
+                                .foregroundColor(Theme.Colors.textMuted)
+                                .tracking(1)
 
-                    ForEach(workouts) { workout in
-                        WorkoutHistoryCard(workout: workout)
-                            .onTapGesture {
-                                selectedWorkout = workout
-                            }
-                            .contextMenu {
-                                Button(role: .destructive) {
-                                    viewModel.deleteWorkout(workout)
-                                } label: {
-                                    Label("Delete Workout", systemImage: "trash")
+                            Text("(\(workouts.count))")
+                                .font(Theme.Typography.captionSmall)
+                                .foregroundColor(Theme.Colors.textMuted)
+
+                            Spacer()
+
+                            Image(systemName: expandedSections.contains(section) ? "chevron.up" : "chevron.down")
+                                .font(.caption2)
+                                .foregroundColor(Theme.Colors.textMuted)
+                        }
+                        .padding(.top, Theme.Spacing.md)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+
+                    // Workouts (only if expanded)
+                    if expandedSections.contains(section) {
+                        ForEach(workouts) { workout in
+                            WorkoutHistoryCard(workout: workout)
+                                .onTapGesture {
+                                    selectedWorkout = workout
                                 }
-                            }
+                                .contextMenu {
+                                    Button(role: .destructive) {
+                                        viewModel.deleteWorkout(workout)
+                                    } label: {
+                                        Label("Delete Workout", systemImage: "trash")
+                                    }
+                                }
+                        }
+                        .transition(.opacity.combined(with: .move(edge: .top)))
                     }
                 }
             }
         }
     }
 
+    private var filteredWorkouts: [Workout] {
+        guard isFilterActive else { return viewModel.workouts }
+        return viewModel.workouts.filter { workout in
+            // Include workout if any of its exercises match selected muscle groups
+            workout.muscleGroups.contains { selectedMuscleGroups.contains($0) }
+        }
+    }
+
     private var groupedWorkouts: [(String, [Workout])] {
         let calendar = Calendar.current
-        let grouped = Dictionary(grouping: viewModel.workouts) { workout -> String in
+        let grouped = Dictionary(grouping: filteredWorkouts) { workout -> String in
             if calendar.isDateInToday(workout.startedAt) {
                 return "TODAY"
             } else if calendar.isDateInYesterday(workout.startedAt) {
@@ -482,6 +533,84 @@ struct WorkoutDetailEntry: View {
             return String(format: "%.0f", weight)
         }
         return String(format: "%.1f", weight)
+    }
+}
+
+// MARK: - Muscle Group Filter Sheet
+struct MuscleGroupFilterSheet: View {
+    @Environment(\.dismiss) var dismiss
+    @Binding var selectedMuscleGroups: Set<MuscleGroup>
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                Theme.Colors.background
+                    .ignoresSafeArea()
+
+                ScrollView {
+                    VStack(spacing: Theme.Spacing.sm) {
+                        ForEach(MuscleGroup.allCases, id: \.self) { group in
+                            Button {
+                                if selectedMuscleGroups.contains(group) {
+                                    selectedMuscleGroups.remove(group)
+                                } else {
+                                    selectedMuscleGroups.insert(group)
+                                }
+                                let generator = UIImpactFeedbackGenerator(style: .light)
+                                generator.impactOccurred()
+                            } label: {
+                                HStack(spacing: Theme.Spacing.md) {
+                                    // Muscle group color dot
+                                    Circle()
+                                        .fill(group.color)
+                                        .frame(width: 12, height: 12)
+
+                                    // Muscle group name
+                                    Text(group.rawValue)
+                                        .font(Theme.Typography.body)
+                                        .foregroundColor(Theme.Colors.textPrimary)
+
+                                    Spacer()
+
+                                    // Checkmark if selected
+                                    if selectedMuscleGroups.contains(group) {
+                                        Image(systemName: "checkmark")
+                                            .font(.body.weight(.semibold))
+                                            .foregroundColor(Theme.Colors.accent)
+                                    }
+                                }
+                                .padding(Theme.Spacing.md)
+                                .background(selectedMuscleGroups.contains(group) ? Theme.Colors.surfaceElevated : Theme.Colors.surface)
+                                .cornerRadius(Theme.Radius.medium)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .padding(Theme.Spacing.md)
+                }
+            }
+            .navigationTitle("Filter by Muscle")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    if !selectedMuscleGroups.isEmpty {
+                        Button("Clear") {
+                            selectedMuscleGroups.removeAll()
+                            let generator = UINotificationFeedbackGenerator()
+                            generator.notificationOccurred(.success)
+                        }
+                        .foregroundColor(Theme.Colors.textSecondary)
+                    }
+                }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                    .fontWeight(.semibold)
+                    .foregroundColor(Theme.Colors.accent)
+                }
+            }
+        }
     }
 }
 

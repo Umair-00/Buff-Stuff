@@ -11,10 +11,31 @@ import Charts
 struct ExerciseProgressOverview: View {
     @Environment(WorkoutViewModel.self) var viewModel
     let period: ProgressTimePeriod
+    var muscleGroupFilter: Set<MuscleGroup> = []
     @State private var selectedProgress: ExerciseProgress?
+    @State private var showAllExercises: Bool = false
+
+    private let defaultDisplayCount = 5
 
     private var progressData: [ExerciseProgress] {
-        viewModel.allExerciseProgress(in: period)
+        let allProgress = viewModel.allExerciseProgress(in: period)
+        guard !muscleGroupFilter.isEmpty else { return allProgress }
+        return allProgress.filter { muscleGroupFilter.contains($0.exercise.muscleGroup) }
+    }
+
+    private var displayedProgress: [ExerciseProgress] {
+        if showAllExercises || progressData.count <= defaultDisplayCount {
+            return progressData
+        }
+        return Array(progressData.prefix(defaultDisplayCount))
+    }
+
+    private var hasMoreExercises: Bool {
+        progressData.count > defaultDisplayCount
+    }
+
+    private var hiddenCount: Int {
+        progressData.count - defaultDisplayCount
     }
 
     private var hasData: Bool {
@@ -42,7 +63,7 @@ struct ExerciseProgressOverview: View {
 
             if hasData {
                 VStack(spacing: 0) {
-                    ForEach(progressData) { progress in
+                    ForEach(displayedProgress) { progress in
                         VStack(spacing: 0) {
                             ExerciseProgressRow(
                                 progress: progress,
@@ -52,12 +73,32 @@ struct ExerciseProgressOverview: View {
                                 }
                             )
 
-                            // Divider (except last)
-                            if progress.id != progressData.last?.id {
+                            // Divider (except last in displayed list)
+                            if progress.id != displayedProgress.last?.id {
                                 Divider()
                                     .background(Theme.Colors.surfaceElevated)
                             }
                         }
+                    }
+                }
+
+                // Show more/less button
+                if hasMoreExercises {
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            showAllExercises.toggle()
+                        }
+                        triggerHaptic()
+                    } label: {
+                        HStack(spacing: Theme.Spacing.xs) {
+                            Text(showAllExercises ? "Show less" : "Show all \(progressData.count) exercises")
+                                .font(Theme.Typography.caption)
+                            Image(systemName: showAllExercises ? "chevron.up" : "chevron.down")
+                                .font(.caption2)
+                        }
+                        .foregroundColor(Theme.Colors.accent)
+                        .frame(maxWidth: .infinity)
+                        .padding(.top, Theme.Spacing.sm)
                     }
                 }
 
