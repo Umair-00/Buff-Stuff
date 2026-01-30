@@ -20,6 +20,12 @@
 	<string>6.0</string>
 	<key>UILaunchScreen</key>
 	<dict/>
+	<key>UIRequiresFullScreen</key>
+	<true/>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+	</array>
 	<key>NSHealthShareUsageDescription</key>
 	<string>Buff Stuff reads your workout data to display activity summaries.</string>
 	<key>NSHealthUpdateUsageDescription</key>

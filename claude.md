@@ -10,6 +10,7 @@ Buff Stuff is an iOS workout tracking app designed for strength training. The ap
 - Workout history with analytics (volume, sets, duration)
 - Smart suggestions for progressive overload
 - HealthKit integration (workout sync, live sessions)
+- **watchOS companion app** (active calorie/HR tracking) - see [WATCH.md](WATCH.md)
 - Feedback form (sends to Discord, no local storage)
 
 ## Tech Stack
@@ -41,7 +42,8 @@ Buff Stuff/
 ├── Services/
 │   ├── HealthKitManager.swift   # HealthKit sync, live workout sessions
 │   ├── CloudKitManager.swift    # CloudKit operations (CRUD, zones, subscriptions)
-│   └── SyncEngine.swift         # Sync orchestration, conflict resolution
+│   ├── SyncEngine.swift         # Sync orchestration, conflict resolution
+│   └── WatchConnectivityManager.swift  # Watch Connectivity (iOS side)
 ├── Extensions/
 │   └── CKRecord+Models.swift    # Syncable protocol, CKRecord conversions
 └── Views/
@@ -52,6 +54,13 @@ Buff Stuff/
     ├── QuickLogSheet.swift      # Fast set logging modal + suggestions
     ├── ExercisePickerSheet.swift # Exercise selection
     └── NewExerciseSheet.swift   # Create exercise form
+
+Buff Stuff Watch App Watch App/   # watchOS companion (see WATCH.md)
+├── Buff_Stuff_Watch_AppApp.swift    # Watch app entry point
+├── ContentView.swift                 # Watch UI (standby + active states)
+├── WatchWorkoutManager.swift         # HKWorkoutSession management
+├── WatchConnectivityManager.swift    # Watch Connectivity (watch side)
+└── WatchMessage.swift                # Shared message types
 ```
 
 ## Key Conventions
@@ -177,9 +186,26 @@ Workouts sync to Apple Health and display a live workout indicator.
 3. User finishes/cancels → `endWorkoutSession()` called
 4. Completed workout synced to HealthKit
 
-**Note:** iOS `HKWorkoutSession` does NOT trigger Apple Watch to actively track HR/calories. That requires a watchOS companion app. The current implementation shows the live indicator but watch data comes from passive tracking only.
+**Note:** iOS `HKWorkoutSession` does NOT trigger Apple Watch to actively track HR/calories. The watchOS companion app handles active tracking - see below.
 
 **Implementation:** `HealthKitManager.swift` in Services/
+
+## watchOS Companion App
+
+The watch app enables **active calorie and heart rate tracking** during workouts. See [WATCH.md](WATCH.md) for full documentation.
+
+**How it works:**
+1. User starts workout on iPhone → Watch receives command via WatchConnectivity
+2. Watch starts its own `HKWorkoutSession` with `HKLiveWorkoutBuilder`
+3. Watch actively tracks HR and calories using sensors
+4. User finishes workout → Watch returns workout data to iPhone
+5. Data synced to HealthKit with real calorie/HR metrics
+
+**Key Files:**
+- iOS: `Services/WatchConnectivityManager.swift`
+- Watch: `WatchWorkoutManager.swift`, `WatchConnectivityManager.swift`
+
+**Deployment:** Watch app is embedded in iOS app and installs via TestFlight or App Store.
 
 ## UserDefaults Keys
 

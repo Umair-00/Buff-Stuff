@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		4524A9D12F1ED3A00047D9E5 /* CLAUDE.md in Resources */ = {isa = PBXBuildFile; fileRef = 4524A9D02F1ED3A00047D9E5 /* CLAUDE.md */; };
+		45CA53CC2F2AE8D300D77BBA /* Buff Stuff Watch App Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 45CA53AC2F2AE8D200D77BBA /* Buff Stuff Watch App Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -18,14 +19,62 @@
 			remoteGlobalIDString = 452B55292F1711BF001D7704;
 			remoteInfo = "Buff Stuff";
 		};
+		45CA53B92F2AE8D300D77BBA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 452B55222F1711BF001D7704 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 45CA53AB2F2AE8D200D77BBA;
+			remoteInfo = "Buff Stuff Watch App Watch App";
+		};
+		45CA53C32F2AE8D300D77BBA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 452B55222F1711BF001D7704 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 45CA53AB2F2AE8D200D77BBA;
+			remoteInfo = "Buff Stuff Watch App Watch App";
+		};
+		45CA53CA2F2AE8D300D77BBA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 452B55222F1711BF001D7704 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 45CA53AB2F2AE8D200D77BBA;
+			remoteInfo = "Buff Stuff Watch App Watch App";
+		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		45CA53D02F2AE8D300D77BBA /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+				45CA53CC2F2AE8D300D77BBA /* Buff Stuff Watch App Watch App.app in Embed Watch Content */,
+			);
+			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		4524A9BF2F1ED2090047D9E5 /* Buff StuffTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Buff StuffTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		4524A9D02F1ED3A00047D9E5 /* CLAUDE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = CLAUDE.md; sourceTree = "<group>"; };
 		452B552A2F1711BF001D7704 /* Buff Stuff.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Buff Stuff.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		45CA53AC2F2AE8D200D77BBA /* Buff Stuff Watch App Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Buff Stuff Watch App Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		45CA53B82F2AE8D300D77BBA /* Buff Stuff Watch App Watch AppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Buff Stuff Watch App Watch AppTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		45CA53C22F2AE8D300D77BBA /* Buff Stuff Watch App Watch AppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Buff Stuff Watch App Watch AppUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		AABBCCDD0001 /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		AABBCCDD0002 /* Exceptions for "Buff Stuff" folder in "Buff Stuff" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 452B55292F1711BF001D7704 /* Buff Stuff */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		4524A9C02F1ED2090047D9E5 /* Buff StuffTests */ = {
@@ -36,22 +85,27 @@
 		452B552C2F1711BF001D7704 /* Buff Stuff */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				AABBCCDD0002 /* PBXFileSystemSynchronizedBuildFileExceptionSet */,
+				AABBCCDD0002 /* Exceptions for "Buff Stuff" folder in "Buff Stuff" target */,
 			);
 			path = "Buff Stuff";
 			sourceTree = "<group>";
 		};
-/* End PBXFileSystemSynchronizedRootGroup section */
-
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		AABBCCDD0002 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-			);
-			target = 452B55292F1711BF001D7704 /* Buff Stuff */;
+		45CA53AD2F2AE8D200D77BBA /* Buff Stuff Watch App Watch App */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "Buff Stuff Watch App Watch App";
+			sourceTree = "<group>";
 		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		45CA53BB2F2AE8D300D77BBA /* Buff Stuff Watch App Watch AppTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "Buff Stuff Watch App Watch AppTests";
+			sourceTree = "<group>";
+		};
+		45CA53C52F2AE8D300D77BBA /* Buff Stuff Watch App Watch AppUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "Buff Stuff Watch App Watch AppUITests";
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		4524A9BC2F1ED2090047D9E5 /* Frameworks */ = {
@@ -68,6 +122,27 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		45CA53A92F2AE8D200D77BBA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		45CA53B52F2AE8D300D77BBA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		45CA53BF2F2AE8D300D77BBA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -78,6 +153,9 @@
 				AABBCCDD0001 /* Secrets.xcconfig */,
 				452B552C2F1711BF001D7704 /* Buff Stuff */,
 				4524A9C02F1ED2090047D9E5 /* Buff StuffTests */,
+				45CA53AD2F2AE8D200D77BBA /* Buff Stuff Watch App Watch App */,
+				45CA53BB2F2AE8D300D77BBA /* Buff Stuff Watch App Watch AppTests */,
+				45CA53C52F2AE8D300D77BBA /* Buff Stuff Watch App Watch AppUITests */,
 				452B552B2F1711BF001D7704 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -87,6 +165,9 @@
 			children = (
 				452B552A2F1711BF001D7704 /* Buff Stuff.app */,
 				4524A9BF2F1ED2090047D9E5 /* Buff StuffTests.xctest */,
+				45CA53AC2F2AE8D200D77BBA /* Buff Stuff Watch App Watch App.app */,
+				45CA53B82F2AE8D300D77BBA /* Buff Stuff Watch App Watch AppTests.xctest */,
+				45CA53C22F2AE8D300D77BBA /* Buff Stuff Watch App Watch AppUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -124,10 +205,12 @@
 				452B55262F1711BF001D7704 /* Sources */,
 				452B55272F1711BF001D7704 /* Frameworks */,
 				452B55282F1711BF001D7704 /* Resources */,
+				45CA53D02F2AE8D300D77BBA /* Embed Watch Content */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				45CA53CB2F2AE8D300D77BBA /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				452B552C2F1711BF001D7704 /* Buff Stuff */,
@@ -138,6 +221,74 @@
 			productName = "Buff Stuff";
 			productReference = 452B552A2F1711BF001D7704 /* Buff Stuff.app */;
 			productType = "com.apple.product-type.application";
+		};
+		45CA53AB2F2AE8D200D77BBA /* Buff Stuff Watch App Watch App */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 45CA53CD2F2AE8D300D77BBA /* Build configuration list for PBXNativeTarget "Buff Stuff Watch App Watch App" */;
+			buildPhases = (
+				45CA53A82F2AE8D200D77BBA /* Sources */,
+				45CA53A92F2AE8D200D77BBA /* Frameworks */,
+				45CA53AA2F2AE8D200D77BBA /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				45CA53AD2F2AE8D200D77BBA /* Buff Stuff Watch App Watch App */,
+			);
+			name = "Buff Stuff Watch App Watch App";
+			packageProductDependencies = (
+			);
+			productName = "Buff Stuff Watch App Watch App";
+			productReference = 45CA53AC2F2AE8D200D77BBA /* Buff Stuff Watch App Watch App.app */;
+			productType = "com.apple.product-type.application";
+		};
+		45CA53B72F2AE8D300D77BBA /* Buff Stuff Watch App Watch AppTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 45CA53D12F2AE8D300D77BBA /* Build configuration list for PBXNativeTarget "Buff Stuff Watch App Watch AppTests" */;
+			buildPhases = (
+				45CA53B42F2AE8D300D77BBA /* Sources */,
+				45CA53B52F2AE8D300D77BBA /* Frameworks */,
+				45CA53B62F2AE8D300D77BBA /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				45CA53BA2F2AE8D300D77BBA /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				45CA53BB2F2AE8D300D77BBA /* Buff Stuff Watch App Watch AppTests */,
+			);
+			name = "Buff Stuff Watch App Watch AppTests";
+			packageProductDependencies = (
+			);
+			productName = "Buff Stuff Watch App Watch AppTests";
+			productReference = 45CA53B82F2AE8D300D77BBA /* Buff Stuff Watch App Watch AppTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		45CA53C12F2AE8D300D77BBA /* Buff Stuff Watch App Watch AppUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 45CA53D42F2AE8D300D77BBA /* Build configuration list for PBXNativeTarget "Buff Stuff Watch App Watch AppUITests" */;
+			buildPhases = (
+				45CA53BE2F2AE8D300D77BBA /* Sources */,
+				45CA53BF2F2AE8D300D77BBA /* Frameworks */,
+				45CA53C02F2AE8D300D77BBA /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				45CA53C42F2AE8D300D77BBA /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				45CA53C52F2AE8D300D77BBA /* Buff Stuff Watch App Watch AppUITests */,
+			);
+			name = "Buff Stuff Watch App Watch AppUITests";
+			packageProductDependencies = (
+			);
+			productName = "Buff Stuff Watch App Watch AppUITests";
+			productReference = 45CA53C22F2AE8D300D77BBA /* Buff Stuff Watch App Watch AppUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
 
@@ -155,6 +306,17 @@
 					};
 					452B55292F1711BF001D7704 = {
 						CreatedOnToolsVersion = 26.2;
+					};
+					45CA53AB2F2AE8D200D77BBA = {
+						CreatedOnToolsVersion = 26.2;
+					};
+					45CA53B72F2AE8D300D77BBA = {
+						CreatedOnToolsVersion = 26.2;
+						TestTargetID = 45CA53AB2F2AE8D200D77BBA;
+					};
+					45CA53C12F2AE8D300D77BBA = {
+						CreatedOnToolsVersion = 26.2;
+						TestTargetID = 45CA53AB2F2AE8D200D77BBA;
 					};
 				};
 			};
@@ -174,6 +336,9 @@
 			targets = (
 				452B55292F1711BF001D7704 /* Buff Stuff */,
 				4524A9BE2F1ED2090047D9E5 /* Buff StuffTests */,
+				45CA53AB2F2AE8D200D77BBA /* Buff Stuff Watch App Watch App */,
+				45CA53B72F2AE8D300D77BBA /* Buff Stuff Watch App Watch AppTests */,
+				45CA53C12F2AE8D300D77BBA /* Buff Stuff Watch App Watch AppUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -194,6 +359,27 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		45CA53AA2F2AE8D200D77BBA /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		45CA53B62F2AE8D300D77BBA /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		45CA53C02F2AE8D300D77BBA /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -211,6 +397,27 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		45CA53A82F2AE8D200D77BBA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		45CA53B42F2AE8D300D77BBA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		45CA53BE2F2AE8D300D77BBA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -218,6 +425,21 @@
 			isa = PBXTargetDependency;
 			target = 452B55292F1711BF001D7704 /* Buff Stuff */;
 			targetProxy = 4524A9C32F1ED2090047D9E5 /* PBXContainerItemProxy */;
+		};
+		45CA53BA2F2AE8D300D77BBA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 45CA53AB2F2AE8D200D77BBA /* Buff Stuff Watch App Watch App */;
+			targetProxy = 45CA53B92F2AE8D300D77BBA /* PBXContainerItemProxy */;
+		};
+		45CA53C42F2AE8D300D77BBA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 45CA53AB2F2AE8D200D77BBA /* Buff Stuff Watch App Watch App */;
+			targetProxy = 45CA53C32F2AE8D300D77BBA /* PBXContainerItemProxy */;
+		};
+		45CA53CB2F2AE8D300D77BBA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 45CA53AB2F2AE8D200D77BBA /* Buff Stuff Watch App Watch App */;
+			targetProxy = 45CA53CA2F2AE8D300D77BBA /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -463,6 +685,174 @@
 			};
 			name = Release;
 		};
+		45CA53CE2F2AE8D300D77BBA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "Buff Stuff Watch App Watch App/Buff Stuff Watch App Watch App.entitlements";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 2NJH63B93Q;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Buff Stuff";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Buff Stuff reads heart rate during workouts to track your exercise intensity.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Buff Stuff saves your workouts to Apple Health to track your fitness progress.";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKBackgroundModes = "workout-processing";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = "com.buffstuff.Buff-Stuff";
+				INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp = NO;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.buffstuff.Buff-Stuff.watchkitapp";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 26.0;
+			};
+			name = Debug;
+		};
+		45CA53CF2F2AE8D300D77BBA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "Buff Stuff Watch App Watch App/Buff Stuff Watch App Watch App.entitlements";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 2NJH63B93Q;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Buff Stuff";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Buff Stuff reads heart rate during workouts to track your exercise intensity.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Buff Stuff saves your workouts to Apple Health to track your fitness progress.";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKBackgroundModes = "workout-processing";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = "com.buffstuff.Buff-Stuff";
+				INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp = NO;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.buffstuff.Buff-Stuff.watchkitapp";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 26.0;
+			};
+			name = Release;
+		};
+		45CA53D22F2AE8D300D77BBA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 2NJH63B93Q;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.buffstuff.Buff-Stuff-Watch-App-Watch-AppTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Buff Stuff Watch App Watch App.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Buff Stuff Watch App Watch App";
+				WATCHOS_DEPLOYMENT_TARGET = 26.2;
+			};
+			name = Debug;
+		};
+		45CA53D32F2AE8D300D77BBA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 2NJH63B93Q;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.buffstuff.Buff-Stuff-Watch-App-Watch-AppTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Buff Stuff Watch App Watch App.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Buff Stuff Watch App Watch App";
+				WATCHOS_DEPLOYMENT_TARGET = 26.2;
+			};
+			name = Release;
+		};
+		45CA53D52F2AE8D300D77BBA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 2NJH63B93Q;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.buffstuff.Buff-Stuff-Watch-App-Watch-AppUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				TEST_TARGET_NAME = "Buff Stuff Watch App Watch App";
+				WATCHOS_DEPLOYMENT_TARGET = 26.2;
+			};
+			name = Debug;
+		};
+		45CA53D62F2AE8D300D77BBA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 2NJH63B93Q;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.buffstuff.Buff-Stuff-Watch-App-Watch-AppUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				TEST_TARGET_NAME = "Buff Stuff Watch App Watch App";
+				WATCHOS_DEPLOYMENT_TARGET = 26.2;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -489,6 +879,33 @@
 			buildConfigurations = (
 				452B55362F1711C0001D7704 /* Debug */,
 				452B55372F1711C0001D7704 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		45CA53CD2F2AE8D300D77BBA /* Build configuration list for PBXNativeTarget "Buff Stuff Watch App Watch App" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				45CA53CE2F2AE8D300D77BBA /* Debug */,
+				45CA53CF2F2AE8D300D77BBA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		45CA53D12F2AE8D300D77BBA /* Build configuration list for PBXNativeTarget "Buff Stuff Watch App Watch AppTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				45CA53D22F2AE8D300D77BBA /* Debug */,
+				45CA53D32F2AE8D300D77BBA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		45CA53D42F2AE8D300D77BBA /* Build configuration list for PBXNativeTarget "Buff Stuff Watch App Watch AppUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				45CA53D52F2AE8D300D77BBA /* Debug */,
+				45CA53D62F2AE8D300D77BBA /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

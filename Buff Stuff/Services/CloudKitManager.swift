@@ -44,6 +44,10 @@ class CloudKitManager {
         customZoneID = CKRecordZone.ID(zoneName: "BuffStuffZone", ownerName: CKCurrentUserDefaultName)
         iCloudSyncEnabled = UserDefaults.standard.bool(forKey: cloudKitEnabledKey)
 
+        // Debug logging
+        print("🔧 CloudKit Debug: Container ID = \(container.containerIdentifier ?? "nil")")
+        print("🔧 CloudKit Debug: Zone ID = \(customZoneID)")
+
         Task {
             await checkAccountStatus()
         }
@@ -56,8 +60,13 @@ class CloudKitManager {
         do {
             accountStatus = try await container.accountStatus()
             isAvailable = accountStatus == .available
+            print("🔧 CloudKit Debug: Account status = \(accountStatus.rawValue) (0=couldNotDetermine, 1=available, 2=restricted, 3=noAccount, 4=temporarilyUnavailable)")
+            print("🔧 CloudKit Debug: isAvailable = \(isAvailable)")
+        } catch let error as CKError {
+            print("❌ CloudKit account status CKError: \(error.code.rawValue) - \(error.localizedDescription)")
+            isAvailable = false
         } catch {
-            print("❌ CloudKit account status error: \(error.localizedDescription)")
+            print("❌ CloudKit account status error: \(error)")
             isAvailable = false
         }
     }
@@ -68,14 +77,29 @@ class CloudKitManager {
     func createCustomZoneIfNeeded() async throws {
         let zone = CKRecordZone(zoneID: customZoneID)
 
+        print("🔧 CloudKit Debug: Attempting to create zone '\(zoneName)'")
+        print("🔧 CloudKit Debug: Container = \(container.containerIdentifier ?? "nil")")
+        print("🔧 CloudKit Debug: Account status = \(accountStatus.rawValue)")
+
         do {
             _ = try await privateDatabase.save(zone)
             print("✅ CloudKit zone created: \(zoneName)")
         } catch let error as CKError where error.code == .serverRecordChanged {
             // Zone already exists, that's fine
             print("✅ CloudKit zone already exists: \(zoneName)")
+        } catch let error as CKError {
+            print("❌ CloudKit CKError code: \(error.code.rawValue)")
+            print("❌ CloudKit CKError description: \(error.localizedDescription)")
+            if let underlying = error.errorUserInfo[NSUnderlyingErrorKey] as? Error {
+                print("❌ CloudKit underlying error: \(underlying)")
+            }
+            if let retryAfter = error.errorUserInfo[CKErrorRetryAfterKey] as? Double {
+                print("❌ CloudKit retry after: \(retryAfter)s")
+            }
+            throw error
         } catch {
-            print("❌ CloudKit zone creation failed: \(error.localizedDescription)")
+            print("❌ CloudKit zone creation failed: \(error)")
+            print("❌ CloudKit error type: \(type(of: error))")
             throw error
         }
     }

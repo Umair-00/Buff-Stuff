@@ -40,8 +40,8 @@ struct SettingsView: View {
                     // Header
                     header
 
-                    // iCloud Sync Section
-                    iCloudSyncSection
+                    // iCloud Sync Section (disabled - needs provisioning profile fix)
+                    // iCloudSyncSection
 
                     // HealthKit Section
                     healthKitSection
